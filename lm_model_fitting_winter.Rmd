@@ -102,7 +102,7 @@ for (i in 7:31) {
 ```
 
 
-#### First linear regression model for  T2Obs
+#### First linear regression model for  T2
 
 For our first model, we take all the variables which have a positive correlation higher than 0.8 with T2Obs and all the variables which are negatively correlated with T2Obs. 
 
@@ -137,7 +137,7 @@ summary(my.model1.T2)
 ```
 
 
-#### Second  linear regression model for  T2Obs
+#### Second  linear regression model for  T2
 
 We try in this step to see whether we can improve our first model. Based on the t value and Pr value  for the variables obtained in our first model, we include the variables which have Pr value less than 0.5.  This results in a new formula for the linear regression as 
 
@@ -152,7 +152,7 @@ summary(my.model2.T2)
 
 ```
 
-#### Third   linear regression model for  T2Obs
+#### Third   linear regression model for  T2
 
 We try to see if we can improve the model still further. Based on the t value and Pr value  for the variables obtained in our second  model, we include only the variables which have Pr value less than 0.1.  This results in a new formula for the linear regression as 
 
@@ -168,7 +168,7 @@ summary(my.model3.T2)
 ```
 
 
-### The selected linear model for T2Obs
+### The selected linear model for T2
 
 From the above analysis we saw that we do not gain much in terms of residual error and p value when we move from model 1 to model 3.
 Our analysis is based only on the winter data, we cannot strongly state that the  five variables for the third model are the only ones that significantly affect T2. As a compromise  we select the second model with eight variables, which has a higher F value than the first model.
@@ -182,7 +182,7 @@ my.model.T2 <- lm(T2Obs  ~ T2 + D2 + T_950 + T_925 + T2_M1 + D2_M1 + SKT + LCC ,
 summary(my.model.T2)
 
 ```
-### Predicting T2 with the lm  model
+### Predicting T2 with my model
 
 We now see the predicting ability of our model by using it to predict T2 for the test data T2_winter_00_08_test.
 The results show that the root mean square error (rmse) is 1.426. 
@@ -204,7 +204,7 @@ T2  =  9.07883695 + 0.26398396 * T2 (of the ECMWF model) + 0.45513159 * D2 (of t
   rmse.mymodel.T2 
 ```
 
-## Modelling D2 with lm  the winter data 
+## Linear regression model for D2 
 
 We use the correlation matrix and the scatter plots to find out the predictor variables for our model. 
 
@@ -236,7 +236,7 @@ for (i in 7:31) {
 ```  
 
 
-#### First linear regression model for D2Obs
+#### First linear regression model for D2
 
 Similar to the modelling of T2Obs, for our first model, we take all the variables which have a positive correlation higher than 0.8 with D2Obs and all the variables which are negatively correlated with D2Obs. 
 
@@ -263,9 +263,9 @@ summary(my_model1_D2)
 
 ```
 
-#### Second  linear regression model for  D2Obs
+#### Second  linear regression model for  D2
 
-We try in this step to see whether we can improve our first model. Based on the t value and Pr value  for the variables obtained in our first model, we include the variables which have Pr value less than 0.5.  Even though T2 has a Pr greater than 0.5 we include T2 in the second model also as we believe that T2 and D2 are related. This results in a new formula for the linear regression as 
+We try in this step to see whether we can improve our first model. Based on the t value and Pr value  for the variables obtained in our first model, we include the variables which have Pr value less than 0.5.  Even though T2 has a Pr greater than 0.5 we include T2 in the second model also as we believe that T2 and D2 are related. As we have seen in the quantile plot of Winter data, the ECMWF model T2 deviates from the observed T2Obs widely. This may be the reason for high Pr value for T2. This results in a new formula for the linear regression as 
 
 ** D2Obs ~ T2 + D2 + T_950 + T2_M1 + T_950_M1 + D2_M1 + SKT + MSL + TP + RH_950 + V10 + LCC ** 
 
@@ -277,9 +277,9 @@ summary(my_model2_D2)
 
 ```
 
-#### Third linear regression model for  D2Obs
+#### Third linear regression model for  D2
 
-We try in this step to see whether we can improve our first model. Based on the t value and Pr value  for the variables obtained in our first model, we include the variables which have Pr value around 0.1.  Even though T2 has a Pr greater than 0.5 we include T2 in the second model also as we believe that T2 and D2 are related. This results in a new formula for the linear regression as 
+We try in this step to see whether we can improve our first model. Based on the t value and Pr value  for the variables obtained in our first model, we include the variables which have Pr value around 0.1.  Even though T2 has a Pr greater than 0.5 we include T2 in the third model also as we believe that T2 and D2 are related.  This results in a new formula for the linear regression as 
 
 ** D2Obs ~ T2 + D2 + T_950 + T_950_M1 + D2_M1 + TP + RH_950 + V10 + LCC ** 
 
@@ -291,7 +291,7 @@ summary(my_model3_D2)
 
 ```
 
-### The selected linear model for D2Obs
+### The selected linear model for D2
 
 From the above analysis we saw that we do not gain much in terms of residual error and p value when we move from model 1 to model 3.
 As the model 3 has 9 variables and they have quite good Pr values we select  the third  model with eight variables, which has a higher F value than the other two models.
@@ -307,12 +307,9 @@ summary(my.model.D2)
 
 ```
 
-## Comparing my.model.T2 and my.model.D2 with standard linear regression models
 
 
-
-
-### Predicting D2 with the lm  model
+### Predicting D2 with the my.model.D2
 
 We now see the predicting ability of our model by using it to predict D2 for the test data D2_winter_00_08_test.
 The results show that the root mean square error (rmse) is 1.351. 
@@ -335,14 +332,87 @@ T2  =  2.472731 - 0.063511 *  T2 (of the ECMWF model) + 0.564682 * D2 (of the EC
   rmse.mymodel.D2
 ```
 
+## Comparing my.model.T2 and my.model.D2 with standard linear regression models
+
+In order to analyse my.model, we compare it with models produced by three other linear regression models. 
+The first one is known as the "lm model" which uses R function lm with all the variables of the dataset.
+
+The second is the "lmstep"" model which uses the R "step"  algorithm. This algorithm develops a sequence of linear models, removing or
+adding a variable at each step. A model is updated when it has a lower Akaike’s Information Criterion (AIC) than the original model. AIC is defined as 
+$AIC \ = \ = -N \, log\(frac{RSS}{N}) + 2k $ where N is the number of observations, RSS is the residual sum of squares and k is the number of degrees of freedom of the original model.
+
+The third method is the glmcv,  Gaussian linear regression model with cross validation. Here the training dataset is divided to K equal parts and always one part is set aside as test data. The idea behind the K-fold cross validation is that the training of the linear regression model is done with K-1 parts and cross vallidation (prediction with cross validation data)  is done with the part which is set aside. The prediction error is calculated for this part. In the next iteration the set-aside part is included in the training data which forms a K-1 group and a new part is set aside. The iterations continue in a modular fashion, each time K-1 parts used for training and one part is used for cross validation. For each iteration prediction error is calculated and glmcv choose the iteration with the least error and selects that model.
+
+We then use the models of lm, lmstep and glmcv to predict T2 and D2 using the test data.  We use the root mean square error (RMSE) to compare the different models.
+
+### Modelling with lm for T2
+
+For the lm model we use all the model variables.  With this model we get Residual standard error: 1.413, F-statistic:  228.9 and   p-value: < 2.2e-16
+
+```{r, warning=FALSE, message=F, echo=TRUE} 
+lm.model.T2 <- lm(T2Obs ~ ., data = T2_winter_00_08_train)
+summary(lm.model.T2)
+
+```
+
+
+### Predicting T2 with the lm.model.T2
+
+We now see the predicting ability of lm.model.T2 by using it to predict T2 for the test data T2_winter_00_08_test.
+The results show that the root mean square error (rmse) is 1.411888. 
+
+
+
+```{r, warning=FALSE, message=F, echo=TRUE} 
+# calculating the fit
+  fitted.values <- predict(object = lm.model.T2, newdata <- T2_winter_00_08_test)
+  T2pred.lm <- fitted.values
+  
+  fitted.values <- as.numeric(fitted.values)
+  residuals <- as.numeric(T2_winter_00_08_test[,1] - fitted.values)
+  coefficients <- lm.model.T2$coefficients
+  rmse.lm.T2 <- sqrt(mean(residuals^2))
+  coefficients 
+  rmse.lm.T2
+```
 
 
 
 
+### Modelling with lm for D2
+
+For the lm model we use all the model variables.  With this model we get Residual standard error: 1.438, F-statistic:  276.2 and   p-value: < 2.2e-16
+
+```{r, warning=FALSE, message=F, echo=TRUE} 
+lm.model.D2 <- lm(D2Obs ~ ., data = D2_winter_00_08_train)
+summary(lm.model.D2)
+
+```
+
+### Predicting D2 with the lm.model.D2
+
+We now see the predicting ability of lm.model.D2 by using it to predict D2 for the test data D2_winter_00_08_test.
+The results show that the root mean square error (rmse) is 1.305783. 
+
+```{r, warning=FALSE, message=F, echo=TRUE} 
+# calculating the fit
+  fitted.values <- predict(object = lm.model.D2, newdata <- D2_winter_00_08_test)
+  D2pred.lm <- fitted.values
+  
+  fitted.values <- as.numeric(fitted.values)
+  residuals <- as.numeric(D2_winter_00_08_test[,1] - fitted.values)
+  coefficients <- lm.model.D2$coefficients
+  rmse.lm.D2 <- sqrt(mean(residuals^2))
+  coefficients 
+  rmse.lm.D2
+```
 
 
+### Modelling T2 with lmstep
 
-# Modelling with lmstep
+As explained earlier this algorithm develops a sequence of linear models, removing or adding a variable at each step. lm.step model starts with a  formula known as the object.formula. We can define a lower and upper formulas and the model can go in step backward or forward to the lower or upper formulas  from the object formula in some number of steps defined in the step variable. Here we define the object.formula as a constant one (no variables present), i.e., T2Obs ~1. The lower.formula is the same as the object.formula and the upper.formula is the formula with all the variables, i.e, T2Obs ~. We use only the forward direction.
+
+With this model we get Residual standard error: 1.397, F-statistic:  531.2 and   p-value: < 2.2e-16
 
 ```{r, warning=FALSE, message=F, echo=TRUE} 
  # generating the linear models
@@ -366,6 +436,10 @@ T2  =  2.472731 - 0.063511 *  T2 (of the ECMWF model) + 0.564682 * D2 (of the EC
 
 
 ### Predicting T2 with the lm step model
+
+We now see the predicting ability of lm.step.T2 by using it to predict T2 for the test data T2_winter_00_08_test.
+The results show that the root mean square error (rmse) is  1.422109. 
+
 ```{r, warning=FALSE, message=F, echo=TRUE} 
 # calculating the fit
   fitted.values <- predict(object = step.model.T2, newdata <- T2_winter_00_08_test)
@@ -375,9 +449,16 @@ T2  =  2.472731 - 0.063511 *  T2 (of the ECMWF model) + 0.564682 * D2 (of the EC
   residuals <- as.numeric(T2_winter_00_08_test[,1] - fitted.values)
   coefficients <- step.model.T2$coefficients
   rmse.lmstep.T2 <- sqrt(mean(residuals^2))
+  coefficients
+  rmse.lmstep.T2
 ```
 
 ### Modelling D2 with the lm step model
+
+Similar to the T2 model,  we define the object.formula as a constant one (no variables present), i.e., D2Obs ~1. The lower.formula is the same as the object.formula and the upper.formula is the formula with all the variables, i.e, D2Obs ~. We use only the forward direction.
+
+With this model we get Residual standard error: 1.428, F-statistic:  777.9 and   p-value: < 2.2e-16.
+Notice that T2 is not present in the final formula which gave the best AIC.
 
 ```{r, warning=FALSE, message=F, echo=TRUE} 
  # generating the linear models
@@ -398,6 +479,10 @@ T2  =  2.472731 - 0.063511 *  T2 (of the ECMWF model) + 0.564682 * D2 (of the EC
 ```
 
 ### Predicting D2 with the lm step model
+
+We now see the predicting ability of lm.step.D2 by using it to predict D2 for the test data D2_winter_00_08_test.
+The results show that the root mean square error (rmse) is  1.334799. 
+
 ```{r, warning=FALSE, message=F, echo=TRUE} 
 # calculating the fit
   fitted.values <- predict(object = step.model.D2, newdata <- D2_winter_00_08_test)
@@ -407,13 +492,15 @@ T2  =  2.472731 - 0.063511 *  T2 (of the ECMWF model) + 0.564682 * D2 (of the EC
   residuals <- as.numeric(D2_winter_00_08_test[,1] - fitted.values)
   coefficients <- step.model.D2$coefficients
   rmse.lmstep.D2 <- sqrt(mean(residuals^2))
-  
+  coefficients
+  rmse.lmstep.D2
 ```
 
 
 
 #### Modelling with glm function and cross validation cv.glm function
 
+We use the glm function in the boot package. We use K = 4 folds, the data for training will be around 300 observations and for cross validation is around 100 observations. The cross validation error is smallest for the first iteration.
 
 ```{r, warning=FALSE, message=F, echo=TRUE} 
 library(boot)
@@ -421,9 +508,11 @@ set.seed(123)
 cv.error.10 = rep(0, 10)
 for (i in 1:10) {
     glm.fit.T2 = glm(T2Obs ~., data = T2_winter_00_08_train)
-    cv.error.10[i] = cv.glm(T2_winter_00_08_train, glm.fit.T2, K = 5)$delta[1]
+    cv.error.10[i] = cv.glm(T2_winter_00_08_train, glm.fit.T2, K = 4)$delta[1]
 cv.error.10
 }
+cv.error.10
+
 summary(glm.fit.T2)
 
 
@@ -432,6 +521,10 @@ summary(glm.fit.T2)
 
 
 ### Predicting T2 with the glm model
+We now see the predicting ability of glmcv.T2 by using it to predict T2 for the test data D2_winter_00_08_test.
+The results show that the root mean square error (rmse) is  1.411888. 
+
+
 ```{r, warning=FALSE, message=F, echo=TRUE} 
 # calculating the fit
   fitted.values <- predict(object = glm.fit.T2, newdata <- T2_winter_00_08_test)
@@ -440,11 +533,16 @@ summary(glm.fit.T2)
   residuals <- as.numeric(T2_winter_00_08_test[,1] - fitted.values)
   coefficients <- glm.fit.T2$coefficients
   rmse.glmcv.T2 <- sqrt(mean(residuals^2))
+  coefficients 
+  rmse.glmcv.T2
 ```
 
 
 
 # D2 model boot library to use cv.glm function
+
+Similar to T2 modelling using glm we carry out the modelling for D2
+
 ```{r, warning=FALSE, message=F, echo=TRUE} 
 library(boot)
 set.seed(123)
@@ -454,11 +552,16 @@ for (i in 1:10) {
     cv.error.10[i] = cv.glm(D2_winter_00_08_train, glm.fit.D2, K = 5)$delta[1]
 cv.error.10
 }
+cv.error.10
 summary(glm.fit.D2)
 
 ```
 
 ## Predicting D2
+We now see the predicting ability of glmcv.D2 by using it to predict D2 for the test data D2_winter_00_08_test.
+The results show that the root mean square error (rmse) is  1.305783. 
+
+
 ```{r, warning=FALSE, message=F, echo=TRUE} 
 # calculating the fit
   fitted.values <- predict(object = glm.fit.D2, newdata <- D2_winter_00_08_test)
@@ -467,10 +570,14 @@ summary(glm.fit.D2)
   residuals <- as.numeric(D2_winter_00_08_test[,1] - fitted.values)
   coefficients <- glm.fit.D2$coefficients
   rmse.glmcv.D2 <- sqrt(mean(residuals^2))
+  coefficients 
+  rmse.glmcv.D2
 ```
 
 
-# rmse values for lm, lmstep and glmcv predictions
+# rmse values for my.model lm, lmstep and glmcv predictions of T2 and D2 
+
+We can see that my.model for T2 and D2 have comparable rmse values to that obtained using the lm, lmstep and glmcv.
 
 ```{r, warning=FALSE, message=F, echo=TRUE} 
 
@@ -479,10 +586,30 @@ summary(glm.fit.D2)
  )
 ```
 
-# Graphs  Residuals vs Fitted values, Normal QQ-plot and Residuals vs Leverage.
+## The diagnostic plots  Residuals vs Fitted values, Normal QQ-plot and Residuals vs Leverage for the models 
+
+We plot the following graphs Residuals vs Fitted values, Normal QQ-plot and Residuals vs Leverage for all the models.
+
+The Residuals vs Fitted values  plot shows if the residuals have non-linear patterns. There could be a non-linear relationship between predictor variables and the response variable and the pattern could show up in this plot if the model is not able to  capture the non-linear relationship. Ideally there should not be any pattern and the residuals should be randomly spread around a horizontal line drawn at 0 on the y-axis. A red line in the graph helps to show the trend in the pattern, its deviation from the horizontal line at 0.
+
+The second graph, the normal QQ-plot shows if the residuals are normally distributed. If the residuals follow the  straight dashed line, the residuals are normally distributed.
+
+The third graph, Residuals vs Leverage graph helps to find the influential extreme values or outliers. The  data have extreme values,  but we can consider these extreme values are not influential if the linear  regression model we find does not change if we either include or exclude them from analysis. 
+
+
+The plots show the Residuals vs Fitted values, Normal QQ-plot and Residuals vs Leverage.
+The Residuals vs Fitted values shows most of the residuals are along the mean value. The normal qq plot is linear and the leverage plot do not have outliers. These graphs show that the model is  a good fit
+
+
 
 ```{r, warning=FALSE, message=F, echo=TRUE} 
 # We plot the graphs  Residuals vs Fitted values, Normal QQ-plot and Residuals vs Leverage.
+
+par(mfrow = c(2,2))
+plot(my.model.T2, which = c(1,2,5), caption = list("T2-my model  Residuals vs Fitted values", "T2-mymodel Normal QQ-plot", "T2-mymodel Residuals vs Leverage"))
+
+par(mfrow = c(2,2))
+plot(my.model.D2, which = c(1,2,5), caption = list("D2-my model Residuals vs Fitted values", "D2-lm Normal QQ-plot", "D2-mymodel Residuals vs Leverage"))
 
 
 par(mfrow = c(2,2))
@@ -493,10 +620,10 @@ plot(lm.model.D2, which = c(1,2,5), caption = list("D2-lm Residuals vs Fitted va
 
 par(mfrow = c(2,2))
 
-plot(step.model.T2, which = c(1,2,5), caption = list("T2-lm  Residuals vs Fitted values", "T2-lm Normal QQ-plot", "T2-lm Residuals vs Leverage"))
+plot(step.model.T2, which = c(1,2,5), caption = list("T2-lmstep  Residuals vs Fitted values", "T2-lmstep Normal QQ-plot", "T2-lmstep Residuals vs Leverage"))
 
 par(mfrow = c(2,2))
-plot(step.model.D2, which = c(1,2,5), caption = list("D2-lm Residuals vs Fitted values", "D2-lm Normal QQ-plot", "D2-lm Residuals vs Leverage"))
+plot(step.model.D2, which = c(1,2,5), caption = list("D2-lmstep Residuals vs Fitted values", "D2-lmstep Normal QQ-plot", "D2-lmstep Residuals vs Leverage"))
 
 par(mfrow = c(2,2))
 plot(glm.fit.T2, which = c(1,2,5), caption = list("T2-glm Residuals vs Fitted values", "T2-glm Normal QQ-plot", "T2-glm Residuals vs Leverage"))
