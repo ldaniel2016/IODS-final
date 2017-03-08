@@ -1,7 +1,6 @@
 ## Weather data
 
-The weather data is a time series data, data taken at discrete time intervals. To show an example of a time series We plot the time series data. we plot the Observed 2 meter temperature T2Obs in degree Kelvin for the years from 2012 to 2015.  As we know, the observed temperature shows a seasonal pattern, i.e, varying from high temperatures in Summer to low temperatures in Winter.
-
+The weather data is a time series data, data taken at discrete time intervals. To show an example of a time series data, we plot the observed 2 meter temperature, called  T2Obs,  in degree Kelvin for the years from 2011 to 2015.  As we know, the observed temperature shows a seasonal pattern, i.e, varying from high temperatures in Summer to low temperatures in Winter and also a diurnal pattern varying according to the hours of the day.
 ```{r, warning=FALSE, message=F, echo=TRUE}
 library(ggplot2)
 timeseries <-  read.table(file = "data/timeseries_example.csv", sep = ",", header = TRUE)
@@ -12,18 +11,14 @@ qplot(timeseries$timestamp, timeseries$T2Obs, xlab="year", ylab="Observed temper
 ```
 
 
-# The Description of  the weather data 
+## The description of  the weather data 
+
+The weather data we use in this assignment is based on ECMWF’s 10-day forecasts for the Kumpula station (Station id 2998). There are 5 station and time related variables (station_id, season, analysis_time, forecast period and timestamp) and 25 predictor variables which describe, for example, temperature, dew point, relative humidity forecasts etc. We have also two response variables, the actual observations of the two-meter temperature denoted as T2_Obs and the dew point temperature D2 at 2 meters named as D2Obs. The ECMWF 10-day forecast includes forecasts for T2 and D2. We have the weather data from 2011-12-01 to 2015-10-01. 
+ 
+The T2Obs and D2Obs  are available form [FMI opendata portal] (https://en.ilmatieteenlaitos.fi/open-data). We use the model data from the  [Atmospheric Model high resolution 10-day forecast (HRES)](http://www.ecmwf.int/en/forecasts/datasets/set-i#I-i-a_fc) from ECMWF. 
 
 
-In this assignment we use the T2 and D2 observations and also the raw forecast model available from ECMWF for the Kumpula station. 
-The T2Obs and D2Obs which are the observations of temperature and dewpoint temperature are available form [FMI opendata portal] (https://en.ilmatieteenlaitos.fi/open-data). We use the model data from [Atmospheric Model high resolution 10-day forecast (HRES)](http://www.ecmwf.int/en/forecasts/datasets/set-i#I-i-a_fc). 
-
-
-The training data is based on ECMWF’s 10-day forecasts for the Kumpula station (Station id 2998). There are 5 station and time related variables (station_id, season, analysis_time, forecast period and timestamp) and 25 predictor variables which describe, for example, temperature, dew point, relative humidity forecasts etc. We have also two response variables, the actual observations of the two-meter temperature denoted as T2_Obs and the Dewpoint temperature D2 at 2 meters named as D2Obs. The ECMWF 10-day forecast includes forecasts for T2 and D2. We have the data from 2011-12-01 to 2015-10-01. 
-
-
-
-The variables of the raw forecast we use are for the Single level -forecast are defined [here](http://www.ecmwf.int/en/forecasts/datasets/set-i#I-i-a_fc). The definitions of the predictor variables we use are given below.
+The variables of the raw forecast model from ECMWF (for the Single level -forecast)  are defined [here](http://www.ecmwf.int/en/forecasts/datasets/set-i#I-i-a_fc). The definitions of the predictor variables we use are given below.
 
 ```{r table2, echo=FALSE, message=FALSE, warnings=FALSE, results='asis'}
 tabl <- " 
@@ -70,26 +65,30 @@ cat(tabl) # output the table in a format good for HTML/PDF/docx conversion
 
 ## Loading the data 
 
-The original data file is in "data/station2998_all_data_with_timestamps.csv". It has  299520 observations of 34 variables. The file has missing values in it, represented by "NA". We remove  the variables with a large number of NAs (no. of NAs > no. of observations/4). Two variables "FG10_3" (10 meter wind gust in the last 3 hours) and "MX2T3" (Maximum temperature at 2 meter  in the last 3 hours) are removed as they have large number of NAs. We remove the variables of constant variance, but this file has no variable with constant variance (except the station_id and it is not removed). We also remove the NAs from the other 32 variables. The program, create_weather_data.R does the above functions and save the data in the file "data/station2998_T2_D2_Obs_model_data_with_timestamps.csv"
+The original data file is in "station2998_all_data_with_timestamps.csv". It has  299520 observations of 34 variables. Unfortunately the size of this file exceeds the GitHub's recommended maximum file size, I cannot upload it to my GitHub directory. The file has missing values in it, represented by "NA". We remove  the variables with a large number of NAs (no. of NAs > no. of observations/4). Two variables "FG10_3" (10 meter wind gust in the last 3 hours) and "MX2T3" (Maximum temperature at 2 meter  in the last 3 hours) are removed as they have large number of NAs. We remove the variables of constant variance, but this file has no variable with constant variance (except the station_id and it is not removed). We also remove the NAs from the other 32 variables. The program, create_weather_data.R does the above functions and save the "cleaned" data in the file "data/station2998_T2_D2_Obs_model_data_with_timestamps.csv"
 
-The "cleaned" weather data, T2_D2_Obs_model_data_with_timestamps,  is loaded from the file "data/station2998_T2_D2_Obs_model_data_with_timestamps.csv". Weather data is a multidimensional data. It has 291346 observations of 32 variables. The first five columns of the weather data are the station_id, season, analysis_time, forecast period and timestamps.  We choose the Kumpula station which has a station id of 2998. We have data for all the four seasons, namely, winter, Spring, Summer and Autumn represented by the values  1,2,3,4 respectively. 
+The "cleaned" weather data, T2_D2_Obs_model_data_with_timestamps,  is loaded from the file "data/station2998_T2_D2_Obs_model_data_with_timestamps.csv". Weather data is a multidimensional data. It has 290982 observations of 32 variables. The first five columns of the weather data are the station_id, season, analysis_time, forecast period and timestamps.  We choose the Kumpula station which has a station id of 2998. We have data for all the four seasons, namely, Winter, Spring, Summer and Autumn represented by the values  1,2,3, and 4 respectively. 
 
-We are using 10-day forecasts, we have 2 to 65  different forecast periods  ranging from +0 to +240. Between +0 and +144, the step size is 3 hours, and between +144 and +240, the step size is 6 hours. The forecasts are created two times a day  at 00:00 UTC (Coordinated Universal Time) and 12:00 UTC. This variable is called  analysis time has two values 1 and 2 corresponding to 00:00UTC and 12:00 UTC.  
+We are using 10-day forecasts, we have 2 to 65  different forecast periods  ranging from +0 to +240. Between +0 and +144, the step size is 3 hours, and between +144 and +240, the step size is 6 hours. When the forecast period has a value 2, we get a 3-hour forecast data and if its value is 8, we get a  24-hour or one day forecast data. The forecast period with value 65 represents a 10-day forecast. The forecasts are created two times a day  at 00:00 UTC (Coordinated Universal Time) and 12:00 UTC. This variable is called  analysis time has two values 1 and 2 corresponding to 00:00UTC and 12:00 UTC.  
 
-The response variable T2Obs is at column 6 and the other response variable D2Obs is the last column of the weather data. The columns 8 and 9 gives the ECMF model output for T2 and D2. From the ECMWF model we also have the data for temperature and relative humidity at various pressure levels such as 950 hPa(hecto Pascal), 925 HPa, (50 Hpa, 700 HPa and 500 hPa. We also have data on temperature T2_M1,  T_950_M1 (temperature at 950 hPa), T_925_M1 and dewpoint temperature D2_M1 of the previous forecast period.
+The response variable T2Obs is at column 6 and the other response variable D2Obs is the last column of the weather data. The columns 8 and 9 gives the ECMF model output for T2 and D2. From the ECMWF model we also have the data for temperature and relative humidity at various pressure levels such as 950 hPa(hecto Pascal), 925 hPa, 850 hPa, 700 hPa and 500 hPa. We also have data on temperature T2_M1,  T_950_M1 (temperature at 950 hPa), T_925_M1 and dewp oint temperature D2_M1 of the corresponding variables at the previous forecast period.
 
-ECMWF model also provides the temperature at the surface of Earth(SKT), Wind velocity at 10 meters  (U_10 and V_10). Declination data is available and it is  defined as the angular distance north or south from the celestial equator measured along a great circle passing through the celestial pole.
+ECMWF model also provides the temperature at the surface of Earth called skin temperature (SKT), wind velocity at 10 meters  (U_10 and V_10). Declination data is available and it is  defined as the angular distance north or south from the celestial equator measured along a great circle passing through the celestial pole.
+
+we load the weather data, T2_D2_Obs_model_data_with_timestamps and below can see the structure of the data.
 
 ```{r, warning=FALSE, message=F, echo=TRUE}
 # loading the data from the file 
 T2_D2_Obs_model_data_with_timestamps = read.table(file = "data/station2998_T2_D2_Obs_model_data_with_timestamps.csv", sep = ",", header = TRUE)
 dim(T2_D2_Obs_model_data_with_timestamps)
+
 colnames(T2_D2_Obs_model_data_with_timestamps)
+
 str(T2_D2_Obs_model_data_with_timestamps)
 ```
 ## Summary of the weather data set
 
-We show the minimum, maximum, and quartile values of the weather data for the columns 6:32 is shown here. We can see that the T2Obs has a mean value of 280K and varies from a minimum value of 247.7 K to a maximum of 303.6K. D2Obs has a mean value of 280K and varies from 244.8K to a maximum of 293.1K
+We can find  the minimum, maximum, and quartile values of the weather data for the columns 6:32 is shown here. We can see that the T2Obs has a mean value of 280K and varies from a minimum value of 247.7 K to a maximum of 303.6K. D2Obs has a mean value of 280K and varies from 244.8K to a maximum of 293.1K
 
 ```{r, warning=FALSE, message=F, echo=TRUE}
 # summary of the weather dataset
@@ -98,11 +97,13 @@ summary(T2_D2_Obs_model_data_with_timestamps[,-c(1:5)])
 
 ## Visualizing the data 
 
+Here we plot the histogram of the Observed temperature  at 2 m, Temp at 2 m - ECMWF model and Temp at 2 meters - previous forecast period. We can also see Observed dew point temperature  at 2 m, dew point temp at 2 m - ECMWF model and dew point temp at 2 meters - previous forecast period. Unfortunately I am not able to reduce the font size of the title, so the full titles are not shown in the figures.
+
 ```{r, warning=FALSE, message=F, echo=TRUE}
 library(ggplot2)
 library(gridExtra)
 p1 <- qplot(T2_D2_Obs_model_data_with_timestamps$T2Obs,  geom= "histogram", binwidth = 2,  xlab = "T2Obs", 
-            fill = I("red3"), col = I("gray"), main="Observed temp at 2 meters")
+            fill = I("red3"), col = I("gray"), main="Observed temp at 2 m")
 
 p2 <- qplot(T2_D2_Obs_model_data_with_timestamps$T2,  geom= "histogram", binwidth = 2,  xlab = "T2", 
             fill = I("tomato"), col = I("gray"), main = "Temp at 2 m - ECMWF model") 
@@ -213,12 +214,12 @@ grid.arrange(p1, p2, p3, p4, ncol = 2, nrow = 2)
 ```
 
 ### Correlation matrix and Scatter plots
+
+As our aim is to develop a linear regression model for T2 and D2, it will be  a good idea to study the correlation between the variables of the weather data.
+Below we can see the correlation between the variables of weather data. We describe in detail about the correlations when we go to the next section on the linear regression models.
+
 ```{r, warning=FALSE, message=F, echo=TRUE}
 
-library(Hmisc)
-rcorr(x, type="pearson") # type can be pearson or spearman
-
-#mtcars is a data frame
 cor(as.matrix(T2_D2_Obs_model_data_with_timestamps[,6:ncol(T2_D2_Obs_model_data_with_timestamps)])) 
 
 library(corrplot); library(dplyr)
@@ -227,9 +228,20 @@ cor_matrix<-cor(T2_D2_Obs_model_data_with_timestamps[,6:ncol(T2_D2_Obs_model_dat
 corrplot(cor_matrix, method="number", type = "upper", cl.pos = "b", tl.pos = "d", tl.cex = 0.6)
 ```
 
+### Scatter plots and distriutions
 
-### Time series data
+When we try to plot the scatter plot for even winter data with all the variables, it was very difficult to visualize the data as we have 26 variables. 
+So we take a smaller set of variables such as "T2Obs", "MSL",  "T2","D2", "U10","V10","TP", "LCC","MCC", "HCC","SKT","RH_950","T_950","T2_M1","T_950_M1","DECLINATION", "D2_M1","D2Obs"  and do the scatter plot.    
 
+```{r, warning=FALSE, message=F, echo=TRUE}
+library (ggplot2)
+library (GGally)
+df_winter_00_08_small <- df_winter_00_08[, c(6, 7,8, 9,10, 11,12,13,14,15,16,17,18,27,28,30,31,32)]
+ggpairs(df_winter_00_08_small[,1:ncol(df_winter_00_08_small)], mapping = aes(), lower = list(combo = wrap("facethist", bins = 20))) + ggtitle("Matrix of scatter plots and distributions of weather data")
+```
+
+##  T2 : Air temperature at 2 meters
+We plot below the T2Obs with the observations. We may not infer much from the plot other than a seasonal change in the observed temperature at 2 meters. So we separate the data into small chunks based on the seasons and the forecast periods.
 
 ```{r, warning=FALSE, message=F, echo=TRUE}
 plot(T2_D2_Obs_model_data_with_timestamps$T2Obs, main = "Observed temperature at 2 meters", xlab = "Observations", ylab ="T2Obs")
@@ -237,6 +249,7 @@ plot(T2_D2_Obs_model_data_with_timestamps$T2Obs, main = "Observed temperature at
 
 ### Data for analysis time 00UTC and forecast period 8
 
+Below we can see the weather data for all the seasons where the analysis time in 00:00 UTC and for one-day forecast.
 
 ```{r, warning=FALSE, message=F, echo=TRUE}
 
@@ -246,7 +259,8 @@ qplot(df_00_08$timestamp, df_00_08$T2Obs, xlab="year", ylab="T2Obs")
 ```
 
 ### Data for winter and  analysis time 00UTC and forecast period 8
-TRY TO DO WITH WINTER MONTHS
+Below we can see the weather data for  the winter season where the analysis time in 00:00 UTC and for one-day forecast.
+
 
 ```{r, warning=FALSE, message=F, echo=TRUE}
 
@@ -255,8 +269,52 @@ df_winter_00_08$timestamp = as.Date(strptime(df_winter_00_08$timestamp, "%Y-%m-%
 qplot(df_winter_00_08$timestamp, df_winter_00_08$T2Obs, xlab="year", ylab="T2Obs")
 ```
 
+### QQ plot of winter temp
+
+This plot is interesting, we can see that the low temperatures do not have a linear variation.
+```{r, warning=FALSE, message=F, echo=TRUE}
+
+qqnorm(df_winter_00_08$T2Obs); qqline(df_winter_00_08$T2Obs)
+```
+
+### QQ plot of winter  ECMWF model T2
+
+We can observe that the T2 from ECMWF model differs from the T2Obs.
+
+```{r, warning=FALSE, message=F, echo=TRUE}
+
+qqnorm(df_winter_00_08$T2); qqline(df_winter_00_08$T2)
+```
+
+### Data for winter and  analysis time 00UTC and forecast period 10 days
+
+```{r, warning=FALSE, message=F, echo=TRUE}
+df_summer_00_65 <- T2_D2_Obs_model_data_with_timestamps[which(T2_D2_Obs_model_data_with_timestamps$forecast_period == 65 & T2_D2_Obs_model_data_with_timestamps$analysis_time == 1 & T2_D2_Obs_model_data_with_timestamps$season == 3),]
+df_summer_00_65$timestamp = as.Date(strptime(df_summer_00_65$timestamp, "%Y-%m-%d%H:%M:%S"))
+qplot(df_summer_00_65$timestamp, df_summer_00_65$T2Obs, xlab="year", ylab="T2Obs")
+```
+
+
+### QQ plot of winter temp T2Obs 10 day forecast
+
+
+```{r, warning=FALSE, message=F, echo=TRUE}
+
+qqnorm(df_winter_00_65$T2Obs); qqline(df_winter_00_65$T2Obs)
+```
+
+### QQ plot of winter temp T2 from ECMWF model for the 10 day forecast
+
+
+```{r, warning=FALSE, message=F, echo=TRUE}
+
+qqnorm(df_winter_00_65$T2); qqline(df_winter_00_65$T2)
+```
+
+
 ### Data for summer and  analysis time 00UTC and forecast period 8
-#### CHECK what is meant by forecast period 8
+
+We also shows similar graphs for the summer temperatures.
 
 ```{r, warning=FALSE, message=F, echo=TRUE}
 
@@ -280,17 +338,9 @@ qqnorm(df_summer_00_08$T2Obs); qqline(df_summer_00_08$T2Obs)
 qqnorm(df_summer_00_08$T2); qqline(df_summer_00_08$T2)
 ```
 
-### Data for winter and  analysis time 00UTC and forecast period 10 days
-TRY TO DO WITH WINTER MONTHS
 
-```{r, warning=FALSE, message=F, echo=TRUE}
-df_summer_00_65 <- T2_D2_Obs_model_data_with_timestamps[which(T2_D2_Obs_model_data_with_timestamps$forecast_period == 65 & T2_D2_Obs_model_data_with_timestamps$analysis_time == 1 & T2_D2_Obs_model_data_with_timestamps$season == 3),]
-df_summer_00_65$timestamp = as.Date(strptime(df_summer_00_65$timestamp, "%Y-%m-%d%H:%M:%S"))
-qplot(df_summer_00_65$timestamp, df_summer_00_65$T2Obs, xlab="year", ylab="T2Obs")
-```
 
 ### Data for summer and  analysis time 00UTC and forecast period 8
-#### CHECK what is meant by forecast period 8
 
 ```{r, warning=FALSE, message=F, echo=TRUE}
 library(ggplot2)
@@ -315,68 +365,11 @@ qqnorm(df_summer_00_08$T2); qqline(df_summer_00_08$T2)
 ```
 
 
-### QQ plot of winter temp
 
 
-```{r, warning=FALSE, message=F, echo=TRUE}
+### T2Obs vs T2 from ECMWF model  for Winter forecast period 08
 
-qqnorm(df_winter_00_08$T2Obs); qqline(df_winter_00_08$T2Obs)
-```
-
-### QQ plot of winter  ECMWF model T2
-
-
-```{r, warning=FALSE, message=F, echo=TRUE}
-
-qqnorm(df_winter_00_08$T2); qqline(df_winter_00_08$T2)
-```
-### Data for winter and  analysis time 00UTC and forecast period 65 - 10 day
-TRY TO DO WITH WINTER MONTHS
-
-```{r, warning=FALSE, message=F, echo=TRUE}
-
-df_winter_00_65 <- T2_D2_Obs_model_data_with_timestamps[which(T2_D2_Obs_model_data_with_timestamps$forecast_period == 65 & T2_D2_Obs_model_data_with_timestamps$analysis_time == 1 & T2_D2_Obs_model_data_with_timestamps$season == 1),]
-df_winter_00_65$timestamp = as.Date(strptime(df_winter_00_65$timestamp, "%Y-%m-%d%H:%M:%S"))
-qplot(df_winter_00_65$timestamp, df_winter_00_65$T2Obs, xlab="year", ylab="T2Obs")
-```
-### QQ plot of winter temp T2Obs 10 day forecast
-
-
-```{r, warning=FALSE, message=F, echo=TRUE}
-
-qqnorm(df_winter_00_65$T2Obs); qqline(df_winter_00_65$T2Obs)
-```
-
-### QQ plot of winter temp T2 10 day forecast
-
-
-```{r, warning=FALSE, message=F, echo=TRUE}
-
-qqnorm(df_winter_00_65$T2); qqline(df_winter_00_65$T2)
-```
-
-### Scatter plots and distriutions
-
-WE SHD PLOT T2Obs with all others 
-We take a smaller set (CHECK)
-"T2Obs", "MSL",  "T2","D2", "U10","V10","TP", "LCC","MCC", "HCC","SKT","RH_950","T_950","T2_M1","T_950_M1","DECLINATION", "D2_M1","D2Obs"      
-
-```{r, warning=FALSE, message=F, echo=TRUE}
-library (ggplot2)
-library (GGally)
-df_winter_00_08_small <- df_winter_00_08[, c(6, 7,8, 9,10, 11,12,13,14,15,16,17,18,27,28,30,31,32)]
-ggpairs(df_winter_00_08_small[,1:ncol(df_winter_00_08_small)], mapping = aes(), lower = list(combo = wrap("facethist", bins = 20))) + ggtitle("Matrix of scatter plots and distributions of weather data")
-```
-
-```{r, warning=FALSE, message=F, echo=TRUE}
-library (ggplot2)
-par(mfrow=c(4,7)) 
-for (i in 7:32) {
-  plot(df_winter_00_08[,i],df_winter_00_08[,6], ylab = "T2Obs", xlab = colnames(df_winter_00_08[i]))
-}
-
-```
-#### T2Obs vs T2 for Winter forecast period 08
+Now we plot some graphs depecting the relation ship between T2Obs ad T2 from ECMWF for winter for one-day forecast. We can observe that at high temperatures there is a linear relationship than for the low values of T2Obs ad T2 from ECMWF. We used to method lm to plot this relationship.
 
 ```{r, warning=FALSE, message=F, echo=TRUE}
 T2Obs <- df_winter_00_08$T2Obs
@@ -384,7 +377,9 @@ T2 <- df_winter_00_08$T2
 ggplot(df_winter_00_08, aes(x = T2Obs, y = T2)) + geom_point() + xlab("ECMWF model T2") + ylab("T2Obs") + ggtitle("T2 observed vs ECMWF model T2 for Winter ") + geom_smooth(method = "lm")
 ```
 
-#### D2Obs vs D2 for Winter forecast period 08
+#### D2Obs vs D2 from ECMWF model for Winter forecast period 08
+A similar kind of graph we can observe between D2Obs and D2 from ECMWF for winter for one-day forecast
+
 
 ```{r, warning=FALSE, message=F, echo=TRUE}
 D2Obs <- df_winter_00_08$D2Obs
@@ -392,15 +387,33 @@ D2 <- df_winter_00_08$D2
 ggplot(df_winter_00_08, aes(x = T2Obs, y = T2)) + geom_point() + xlab("ECMWF model D2") + ylab("D2Obs") + ggtitle("D2 observed vs ECMWF model D2 for Winter") + geom_smooth(method = "lm")
 ```
 
-#### T2Obs vs T2 for Summer forecast period 08
+#### T2Obs vs T2 from ECMWF model for Winter forecast period 65
 
+we can observe that for 10-day forecast, the points of T2Obs and T2 from ECMWF model are more scattered. A similar observation is there between D2Obs and D2 from ECMWF model for the 10 day forecast.
+
+```{r, warning=FALSE, message=F, echo=TRUE}
+T2Obs <- df_winter_00_65$T2Obs
+T2 <- df_winter_00_65$T2
+ggplot(df_winter_00_65, aes(x = T2Obs, y = T2)) + geom_point() + xlab("ECMWF model T2") + ylab("T2Obs") + ggtitle("T2 observed vs ECMWF model T2 for Winter ") + geom_smooth(method = "lm")
+```
+
+#### D2Obs vs D2 from ECMWF model for Winter forecast period 65
+
+```{r, warning=FALSE, message=F, echo=TRUE}
+D2Obs <- df_winter_00_65$D2Obs
+D2 <- df_winter_00_65$D2
+ggplot(df_winter_00_65, aes(x = T2Obs, y = T2)) + geom_point() + xlab("ECMWF model D2") + ylab("D2Obs") + ggtitle("D2 observed vs ECMWF model D2 for Winter") + geom_smooth(method = "lm")
+```
+#### T2Obs vs T2 from ECMWF model for Summer forecast period 08
+
+The following plots show the relation ship between T2Obs and T2 from ECMWF model and T2Obs and T2 from ECMWF model for oneday and 10 day forecasts.
 ```{r, warning=FALSE, message=F, echo=TRUE}
 T2Obs <- df_winter_00_08$T2Obs
 T2 <- df_summer_00_08$T2
 ggplot(df_summer_00_08, aes(x = T2Obs, y = T2)) + geom_point() + xlab("ECMWF model T2") + ylab("T2Obs") + ggtitle("T2 observed vs ECMWF model T2 for Summer") + geom_smooth(method = "lm")
 ```
 
-#### D2Obs vs D2 for Summer forecast period 08
+#### D2Obs vs D2 from ECMWF model for Summer forecast period 08
 
 ```{r, warning=FALSE, message=F, echo=TRUE}
 D2Obs <- df_winter_00_08$D2Obs
@@ -409,25 +422,7 @@ ggplot(df_summer_00_08, aes(x = T2Obs, y = D2)) + geom_point() + xlab("ECMWF mod
 ```
 
 
-
-
-#### T2Obs vs T2 for Winter forecast period 65
-
-```{r, warning=FALSE, message=F, echo=TRUE}
-T2Obs <- df_winter_00_65$T2Obs
-T2 <- df_winter_00_65$T2
-ggplot(df_winter_00_65, aes(x = T2Obs, y = T2)) + geom_point() + xlab("ECMWF model T2") + ylab("T2Obs") + ggtitle("T2 observed vs ECMWF model T2 for Winter ") + geom_smooth(method = "lm")
-```
-
-#### D2Obs vs D2 for Winter forecast period 65
-
-```{r, warning=FALSE, message=F, echo=TRUE}
-D2Obs <- df_winter_00_65$D2Obs
-D2 <- df_winter_00_65$D2
-ggplot(df_winter_00_65, aes(x = T2Obs, y = T2)) + geom_point() + xlab("ECMWF model D2") + ylab("D2Obs") + ggtitle("D2 observed vs ECMWF model D2 for Winter") + geom_smooth(method = "lm")
-```
-
-#### T2Obs vs T2 for Summer forecast period 65
+#### T2Obs vs T2 from ECMWF  for Summer forecast period 65
 
 ```{r, warning=FALSE, message=F, echo=TRUE}
 T2Obs <- df_winter_00_65$T2Obs
@@ -435,7 +430,7 @@ T2 <- df_summer_00_65$T2
 ggplot(df_summer_00_65, aes(x = T2Obs, y = T2)) + geom_point() + xlab("ECMWF model T2") + ylab("T2Obs") + ggtitle("T2 observed vs ECMWF model T2 for Summer") + geom_smooth(method = "lm")
 ```
 
-#### D2Obs vs D2 for Summer forecast period 65
+#### D2Obs vs D2 from ECMWF  for Summer forecast period 65
 
 ```{r, warning=FALSE, message=F, echo=TRUE}
 D2Obs <- df_winter_00_65$D2Obs
@@ -443,7 +438,9 @@ D2 <- df_summer_00_65$D2
 ggplot(df_summer_00_65, aes(x = T2Obs, y = D2)) + geom_point() + xlab("ECMWF model D2") + ylab("D2Obs") + ggtitle("D2 observed vs ECMWF model D2 for Summer") + geom_smooth(method = "lm")
 ```
 
-#### T2Obs - T2
+#### The difference in T2Obs and T2  from ECMWF model for all the forecast periods and for all seasons.
+
+Now we plot quantiles of the difference in T2Obs and T2  from ECMWF model for all the forecast periods. We caan see that as the length of the forecast period increases, the variation in the quantiles increases both for high temperatures and low temperatures.
 
 ```{r, warning=FALSE, message=F, echo=TRUE}
 T2Obs_T2 <- T2_D2_Obs_model_data_with_timestamps$T2Obs - T2_D2_Obs_model_data_with_timestamps$T2
