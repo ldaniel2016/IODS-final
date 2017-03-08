@@ -290,12 +290,19 @@ qqnorm(df_winter_00_08$T2); qqline(df_winter_00_08$T2)
 ### Data for winter and  analysis time 00UTC and forecast period 10 days
 
 ```{r, warning=FALSE, message=F, echo=TRUE}
-df_summer_00_65 <- T2_D2_Obs_model_data_with_timestamps[which(T2_D2_Obs_model_data_with_timestamps$forecast_period == 65 & T2_D2_Obs_model_data_with_timestamps$analysis_time == 1 & T2_D2_Obs_model_data_with_timestamps$season == 3),]
-df_summer_00_65$timestamp = as.Date(strptime(df_summer_00_65$timestamp, "%Y-%m-%d%H:%M:%S"))
-qplot(df_summer_00_65$timestamp, df_summer_00_65$T2Obs, xlab="year", ylab="T2Obs")
+df_winter_00_65 <- T2_D2_Obs_model_data_with_timestamps[which(T2_D2_Obs_model_data_with_timestamps$forecast_period == 65 & T2_D2_Obs_model_data_with_timestamps$analysis_time == 1 & T2_D2_Obs_model_data_with_timestamps$season == 3),]
+df_winter_00_65$timestamp = as.Date(strptime(df_winter_00_65$timestamp, "%Y-%m-%d%H:%M:%S"))
+qplot(df_winter_00_65$timestamp, df_winter_00_65$T2Obs, xlab="year", ylab="T2Obs")
 ```
 
 
+### Data for summer  and  analysis time 00UTC and forecast period 10 days
+
+```{r, warning=FALSE, message=F, echo=TRUE}
+df_summer_00_65 <- T2_D2_Obs_model_data_with_timestamps[which(T2_D2_Obs_model_data_with_timestamps$forecast_period == 65 & T2_D2_Obs_model_data_with_timestamps$analysis_time == 3 & T2_D2_Obs_model_data_with_timestamps$season == 3),]
+df_summer_00_65$timestamp = as.Date(strptime(df_summer_00_65$timestamp, "%Y-%m-%d%H:%M:%S"))
+qplot(df_summer_00_65$timestamp, df_summer_00_65$T2Obs, xlab="year", ylab="T2Obs")
+```
 ### QQ plot of winter temp T2Obs 10 day forecast
 
 
