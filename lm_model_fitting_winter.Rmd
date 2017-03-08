@@ -1,17 +1,17 @@
 
 ## Development of a linear regression model for weather data 
 
-In order to model T2 and D2 we use the linear regression model. Linear regression is the modelling tecnique in which we find a  linear realtionship between a scalar dependent variable, called response or predictand and one or more exploratory variables called predictors.
+In order to model T2 and D2 we use the linear regression model. Linear regression is the modelling technique in which we find a  linear relationship between a scalar dependent variable, called response or predictand and one or more exploratory variables called predictors.
 
-Let us take a statistical dataset which consists of $(y, x_1, x_2, ...., x_n) $ where $y$ is the response or predictand variable and $ x_1, x_2, ...., x_n)$ are the predictors. We can find a linear relationship between the predictant and the predictors as 
+Let us take a statistical dataset which consists of $(y, x_1, x_2, ...., x_n) $ where $y$ is the response or predictand variable and $ x_1, x_2, ...., x_n)$ are the predictors. We can find a linear relationship between the predictand and the predictors as 
 
-$ \hat{y} \,= \, \beta_1 x_1 + \beta2_x2 + \ldots + \beta_n x_n $, where $ \hat{y} is the approximation to the predictand $y$ 
+$\hat{y} \,= \, \beta_1 x_1 + \beta_2_x2 + \ldots + \beta_n x_n $, where $ \hat{y}$ is the approximation to the predictand $y$ 
 
 In linear regression model our aim is to find the $\beta$ variables so that the squared error, $ (y - \hat{y})^2 $ is minimum.
 
 In our assignment,  we find the relationship between T2Obs and the variables given as the output of the ECMWF numerical prediction model. A similar regression model for the D2Obs and the ECMWF outputs are also found.
 
-The weather data vary widely between the seasons and the ECMWF forecast model depends much on the forecast period.  But for the analysis purpose we  take only one  dataset for analysis, winter data for 1-day forecast period and summerdata for oneday forecast period. We predict T2 and D2 using our model on the data. In the later part of the assignment we use the model to predict T2 and D2 on the whole Kumpula weather station data for 4 seasons and 64 forecast periods.
+The weather data vary widely between the seasons and the ECMWF forecast model depends much on the forecast period.  But for the analysis purpose we  take only one  dataset for analysis, winter data for 1-day forecast period and summer data for one-day forecast period. We predict T2 and D2 using our model on the data. In the later part of the assignment we use the model to predict T2 and D2 on the whole Kumpula weather station data for 4 seasons and 64 forecast periods.
 
 
 ### Load the data for one-day forecast for the winter season 
@@ -30,7 +30,7 @@ str(df_winter_00_08)
 ```
 
 
-#### Splitting the Training and testing data. 573 observations, train 430 and test 143
+### Splitting the training and testing data. 
 
 From the df_winter_00_08, we create two datasets one for the T2Obs and model data and the other for D2Obs and the model data. The model data is the same for both the datasets and the response variables T2Obs and D2Obs are in the first column of the T2Obs dataset and the D2Obs dataset respectively. We then split the data into train and test data. The train data  has 430 observations of 26 variables and the test data has 143 observations of 26 variables. Notice that we removed the station info is removed as the variables there are not influencing the linear regression model. 
 
@@ -59,7 +59,7 @@ From the df_winter_00_08, we create two datasets one for the T2Obs and model dat
 ```
 
 
-#### Correlation matrix 
+### Correlation matrix 
 
 Here we find the correlation matrix for the variables of the dataset df_winter_00_08
 ```{r, warning=FALSE, message=F, echo=TRUE}
@@ -69,12 +69,12 @@ cor(as.matrix(df_winter_00_08[,6:ncol(df_winter_00_08)]))
 ```
 
 
-#### Linear regression model for  T2Obs
+## Linear regression model for  T2
 
-We use the correlation matrix and the scatter plots to find out the predictor variables for our model. 
+We use the correlation matrix and the scatter plots to find out the predictor variables for our model which predicts T2. 
 
 ### Correlation coefficients and scatter plots of the the variables of the  dataset df_winter_00_08 with T2Obs 
-We study and plot the relationship between D2Obs and the ECMWF model variables. 
+We study and plot the relationship between T2Obs and the ECMWF model variables. 
 The correlation coefficients of of the the variables of the  dataset df_winter_00_08 with T2Obs are given below.
 
 <pre><code>
@@ -106,11 +106,11 @@ for (i in 7:31) {
 
 For our first model, we take all the variables which have a positive correlation higher than 0.8 with T2Obs and all the variables which are negatively correlated with T2Obs. 
 
-All the "temperature variables" are linearly correlated with T2Obs but some have correlation coefficients less thna 0.8. We takeall the temperature variables  that have higher correlation coefficients than 0.8 with T2Obs. So we use the temperature variables T2, T_950, T_925,  T2_M1, T2_950_M1, T2_925_M1 and SKT in our model. D2 and D2_M1 are also have  high correlation coefficent with T2Obs and are  linearly distributed with T2Obs, we include D2 in our model. 
+All the "temperature variables" are linearly correlated with T2Obs but some have correlation coefficients less than 0.8. We take all the temperature variables  that have higher correlation coefficients than 0.8 with T2Obs. So we use the temperature variables T2, T_950, T_925,  T2_M1, T2_950_M1, T2_925_M1 and SKT in our model. D2 and D2_M1 are also have  high correlation coefficient with T2Obs and are  linearly distributed with T2Obs, we include D2 in our model. 
 
 Even though the  RH variables are seen to be randomly distributed with T2Obs, they have correlations less  than 0.8 and we exclude them from  our model.  Even though DECLINATION is  linearly correlated with T2Obs, its  correlation coefficient is less than 0.5, we exclude it  from our model. In the case of TP, it is not linearly correlated with T2Obs and has very small correlation coefficient, we exclude it from the model.
 
-From the scatter plots, we can see that the cloud cover varables LCC, MCC and HCC  are randomly correlated with T2Obs and have low correlation coefficients with T2Obs. As LCC has a negative correlation with T2Obs, we take LCC to our list of predictors. As MSL also has a negative correlation coefficent, we also include it to our list of  predictors. The wind velocity variables,  U10 and V10 are randomly distributed and have low correlation coefficients we exclude them from our model.
+From the scatter plots, we can see that the cloud cover variables LCC, MCC and HCC  are randomly correlated with T2Obs and have low correlation coefficients with T2Obs. As LCC has a negative correlation with T2Obs, we take LCC to our list of predictors. As MSL also has a negative correlation coefficient, we also include it to our list of  predictors. The wind velocity variables,  U10 and V10 are randomly distributed and have low correlation coefficients we exclude them from our model.
 
 Based on the above hypothesis, the formula for our initial model is
 ** T2Obs ~ T2 + D2 + T_950 + T_925 + T2_M1 + T_950_M1 + T_925_M1 + D2_M1 + SKT + LCC + MSL **
@@ -118,14 +118,14 @@ Based on the above hypothesis, the formula for our initial model is
 We use the R function "lm" to carry out the linear regression model.
 
 The summary of our first model, my_model1_T2 shows that it has a Residual standard error: 1.428. F-statistic: 506.9 and the p-value: < 2.2e-16.
-The p-value shows the probability that the null hypothesis is true. If the null hypothesis is true, it is an intercept only model and there is no linear relationship between the predictand and the predictors. In our case as the p value,  is very small, the nul hypothesis is false and there is a linear relationship between the predictand and the predictors. 
+The p-value shows the probability that the null hypothesis is true. If the null hypothesis is true, it is an intercept only model and there is no linear relationship between the predictand and the predictors. In our case as the p value,  is very small, the null hypothesis is false and there is a linear relationship between the predictand and the predictors. 
 
 The Fischer value or F-statistic  is the ratio of explained variance and unexplained variance and has a value near 1 if the null hypothesis is true.
 F-statistic is defined as  F-statistic = MSM (Mean of Squares for Model) / MSE (Mean of Squares for Error) . In our case F-statistic is 506.9, so our model rejects the null hypothesis.
  
  The t value is the value of the t-statistic for testing whether the corresponding regression coefficient is different from 0. As a rule of thump, a t value around or greater than 2 is good.
  
- Pr. value  is the p-value for the hypothesis test for which the t value is the test statistic. It gives  the probability of a test statistic at least as the t  value obtained, if the null hypothesis were true.  A low Pr value for the variables shows that there iis linear relationship between this variable and the predictor.
+ Pr. value  is the p-value for the hypothesis test for which the t value is the test statistic. It gives  the probability of a test statistic at least as the t  value obtained, if the null hypothesis were true.  A low Pr value for the variables shows that there is linear relationship between this variable and the predictor.
  The Signif codes actually shows the ordering based on p values, a lower  p value, higher is the significance.
  
  Based on the F-statistic and p value we see that our model is a good one.
@@ -206,7 +206,7 @@ T2  =  9.07883695 + 0.26398396 * T2 (of the ECMWF model) + 0.45513159 * D2 (of t
 
 ## Linear regression model for D2 
 
-We use the correlation matrix and the scatter plots to find out the predictor variables for our model. 
+We use the correlation matrix and the scatter plots to find out the predictor variables for our model for D2. 
 
 ### Correlation and Scatter plots of  the variables of the  dataset df_winter_00_08 with D2Obs 
 
@@ -240,12 +240,12 @@ for (i in 7:31) {
 
 Similar to the modelling of T2Obs, for our first model, we take all the variables which have a positive correlation higher than 0.8 with D2Obs and all the variables which are negatively correlated with D2Obs. 
 
-All the "temperature variables" are linearly correlated with D2Obs but some have correlation coefficients less than 0.8. We take all the temperature variables  that have higher correlation coefficients than 0.8 with D2Obs. So we use the temperature variables T2, T_950, T_925, T2_M1, T2_950_M1, T2_925_M1 and SKT in our model. D2 and D2_M1 are also have  high correlation coefficent with D2Obs and are  linearly distributed with T2Obs, we include D2 in our model. 
+All the "temperature variables" are linearly correlated with D2Obs but some have correlation coefficients less than 0.8. We take all the temperature variables  that have higher correlation coefficients than 0.8 with D2Obs. So we use the temperature variables T2, T_950, T_925, T2_M1, T2_950_M1, T2_925_M1 and SKT in our model. D2 and D2_M1 are also have  high correlation coefficient with D2Obs and are  linearly distributed with T2Obs, we include D2 in our model. 
 
 
 The  RH variables are seen to be randomly distributed with D2Obs and  they have correlations less  than 0.8 and we exclude them from  our model.  Even though DECLINATION is  linearly correlated with D2Obs, its  correlation coefficient is less than 0.5, we exclude it  from our model. 
 
-As the cloud cover varables LCC, MCC and HCC  are randomly correlated with D2Obs and have low correlation coefficients with T2Obs. we exclude them from our model.  As MSL has a negative correlation coefficent, we also include it to our list of  predictors. The wind velocity variables,  U10 and V10 are randomly distributed and have low correlation coefficients.
+As the cloud cover variables LCC, MCC and HCC  are randomly correlated with D2Obs and have low correlation coefficients with T2Obs. we exclude them from our model.  As MSL has a negative correlation coefficient, we also include it to our list of  predictors. The wind velocity variables,  U10 and V10 are randomly distributed and have low correlation coefficients.
 
 From a layman's point of view, we have a feeling that D2 may be related to LCC, TP, RH_950 and V10 even though they are  not linearly correlated with D2Obs and has very small correlation coefficient.
 
@@ -255,7 +255,7 @@ Based on the above hypothesis, the formula for our initial model is
 
 
 The summary of our first model, my_model1_D2 shows that it has a Residual standard error: 1.447. F-statistic: 486.7 and the p-value: < 2.2e-16.
-As the p value,  is very small, the nul hypothesis is false and there is a linear relationship between the predictand and the predictors. 
+As the p value,  is very small, the null hypothesis is false and there is a linear relationship between the predictand and the predictors. 
 
 ```{r, warning=FALSE, message=F, echo=TRUE} 
 my_model1_D2 <- lm(D2Obs ~ T2 + D2 + T_950 + T_925 + T2_M1 + T_950_M1 + T_925_M1 + D2_M1 + SKT + MSL + TP + RH_950 + + V10 + LCC, data = D2_winter_00_08_train)
@@ -334,14 +334,14 @@ D2  =  2.472731 - 0.063511 *  T2 (of the ECMWF model) + 0.564682 * D2 (of the EC
 
 ## Comparing my.model.T2 and my.model.D2 with standard linear regression models
 
-In order to analyse my.model, we compare it with models produced by three other linear regression models. 
+In order to analyze my.model, we compare it with models produced by three other linear regression models. 
 The first one is known as the "lm model" which uses R function lm with all the variables of the dataset.
 
 The second is the "lmstep"" model which uses the R "step"  algorithm. This algorithm develops a sequence of linear models, removing or
 adding a variable at each step. A model is updated when it has a lower Akaike’s Information Criterion (AIC) than the original model. AIC is defined as 
 $AIC \ = \ = -N \, log\(frac{RSS}{N}) + 2k $ where N is the number of observations, RSS is the residual sum of squares and k is the number of degrees of freedom of the original model.
 
-The third method is the glmcv,  Gaussian linear regression model with cross validation. Here the training dataset is divided to K equal parts and always one part is set aside as test data. The idea behind the K-fold cross validation is that the training of the linear regression model is done with K-1 parts and cross vallidation (prediction with cross validation data)  is done with the part which is set aside. The prediction error is calculated for this part. In the next iteration the set-aside part is included in the training data which forms a K-1 group and a new part is set aside. The iterations continue in a modular fashion, each time K-1 parts used for training and one part is used for cross validation. For each iteration prediction error is calculated and glmcv choose the iteration with the least error and selects that model.
+The third method is the glmcv,  Gaussian linear regression model with cross validation. Here the training dataset is divided to K equal parts and always one part is set aside as test data. The idea behind the K-fold cross validation is that the training of the linear regression model is done with K-1 parts and cross validation (prediction with cross validation data)  is done with the part which is set aside. The prediction error is calculated for this part. In the next iteration the set-aside part is included in the training data which forms a K-1 group and a new part is set aside. The iterations continue in a modular fashion, each time K-1 parts used for training and one part is used for cross validation. For each iteration prediction error is calculated and glmcv choose the iteration with the least error and selects that model.
 
 We then use the models of lm, lmstep and glmcv to predict T2 and D2 using the test data.  We use the root mean square error (RMSE) to compare the different models.
 
@@ -435,7 +435,7 @@ With this model we get Residual standard error: 1.397, F-statistic:  531.2 and  
 ```
 
 
-### Predicting T2 with the lm step model
+### Predicting T2 with the lmstep model
 
 We now see the predicting ability of lm.step.T2 by using it to predict T2 for the test data T2_winter_00_08_test.
 The results show that the root mean square error (rmse) is  1.422109. 
@@ -453,7 +453,7 @@ The results show that the root mean square error (rmse) is  1.422109.
   rmse.lmstep.T2
 ```
 
-### Modelling D2 with the lm step model
+### Modelling D2 with the lmstep model
 
 Similar to the T2 model,  we define the object.formula as a constant one (no variables present), i.e., D2Obs ~1. The lower.formula is the same as the object.formula and the upper.formula is the formula with all the variables, i.e, D2Obs ~. We use only the forward direction.
 
@@ -478,7 +478,7 @@ Notice that T2 is not present in the final formula which gave the best AIC.
  summary(step.model.D2) 
 ```
 
-### Predicting D2 with the lm step model
+### Predicting D2 with the lmstep model
 
 We now see the predicting ability of lm.step.D2 by using it to predict D2 for the test data D2_winter_00_08_test.
 The results show that the root mean square error (rmse) is  1.334799. 
@@ -595,8 +595,8 @@ The Residuals vs Fitted values  plot shows if the residuals have non-linear patt
 The second graph, the normal QQ-plot shows if the residuals are normally distributed. If the residuals follow the  straight dashed line, the residuals are normally distributed.
 
 
-The third graph, Standardized residuals vs Fitted values, shows the rmse in th epredictions.
-The third graph, Residuals vs Leverage graph helps to find the influential extreme values or outliers. The  data have extreme values,  but we can consider these extreme values are not influential if the linear  regression model we find does not change if we either include or exclude them from analysis. The red dotted line in the graph shows the Cook's distance. If all the points in the levrage graph are well within the the Cook's distance, then there are no outliers that influence the linear regression. 
+The third graph, Standardized residuals vs Fitted values, shows the rmse in the predictions.
+The third graph, Residuals vs Leverage graph helps to find the influential extreme values or outliers. The  data have extreme values,  but we can consider these extreme values are not influential if the linear  regression model we find does not change if we either include or exclude them from analysis. The red dotted line in the graph shows the Cook's distance. If all the points in the leverage graph are well within the the Cook's distance, then there are no outliers that influence the linear regression. 
 
 
 We plot the diagnostic plots for our linear regression models, mymodel, lm, lmstep and glmcv. For mymodel, the Residuals vs Fitted values shows most of the residuals are along the mean value. The normal QQ plot is linear and the leverage plot do not have outliers. These graphs show that the mymodel is  a good fit for the weather data. Similar graphs for lm, lmstep and glmcv show that they also produce good linear regression models for the weather data.
@@ -637,7 +637,7 @@ plot(glm.fit.D2, which = c(1,2,5), caption = list("D2-glm Residuals vs Fitted va
 ```
 ## RH predictions
 
-The aim of my assignment was to find the interdependance of the variables T2 and D2. We find this by calculting the Relative humidity which is a function of T2 and D2.
+The aim of my assignment was to find the interdependence of the variables T2 and D2. We find this by calculating the Relative humidity which is a function of T2 and D2.
 
 In this section, we calculate the RH values using the T2Obs, D2Obs,   T2 and D2 from the ECMWF model and T2 and D2 obtained from the linear regression models mymodel, lm, lmstep and glmcv
 
@@ -695,7 +695,7 @@ In this section, we calculate the RH values using the T2Obs, D2Obs,   T2 and D2 
     
 ```
  
-### The rmse in the RH value calulated using the T2 and D2 observations and model values
+### The rmse in the RH value calculated using the T2 and D2 observations and model values
 
 We get the following rmse values for the different models
 rmse RH ECMWF model =  4.823471 rmse RM mymodel =  2.000381 rmse RM lm =  2.029639 rmse RH lmstep =  1.980861 rmse RH glmcv =  1.983662.

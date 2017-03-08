@@ -1,10 +1,7 @@
-#  Assignment problem: 
-## The interdependence of variables in the weather data
-
 ## Abstract
-Statistical postprocessing is a method to improve the direct model output from numerical weather prediction (NWP) models. In this assignment we use linear regression models that use observed  air temperature at 2 meters (T2Obs)  and the dewpoint temperature at 2 meters (D2Obs)  to improve the forecast capability of the NWP models. We develop linear regression models for the air temperature at 2 meters (T2)  and the dewpoint temperature at 2 meters (D2). We compare our model with the standard models available in R such as lm, step and glm. We then use the predicted T2 and D2 to calculate the relative humidity. The root mean square error (rmse) for the RH for ECMWF NWP model and for the linear models. The results show that linear regression models reduces the rmse in RH  at most by a factor of 2. The data used for analysis is the weather data for the Kumpula weather station for the four seasons, for 64 forecast periods produced by ECMWF and the T2Obs and D2Obs available at the Finnish Meteorological Institute.
+Statistical postprocessing is a method to improve the direct model output from numerical weather prediction (NWP) models. In this assignment we use linear regression models that use observed  air temperature at 2 meters (T2Obs)  and the dewpoint temperature at 2 meters (D2Obs)  to improve the forecast capability of the NWP models. We develop linear regression model for the air temperature at 2 meters (T2)  and the dewpoint temperature at 2 meters (D2). We compare our model with the standard models available in R such as lm, step and glm. We then use the predicted T2 and D2 to calculate the relative humidity, the root mean square error (rmse) for the RH for ECMWF NWP model and for the linear models. The results show that linear regression models reduces the rmse in RH  at most by a factor of 2. The data used for analysis is the weather data for the Kumpula weather station for the four seasons, for 64 forecast periods produced by ECMWF and the T2Obs and D2Obs available at the Finnish Meteorological Institute.
 
-## Research question
+## Brief description of the Research question
 
 Statistical postprocessing is a method to improve the direct model output from numerical weather prediction models. It enhances the NWP's ability to forecast by relating the model output to observational or additional model data using statistical methods. It incorporates the local observations to the model output to reduce the systematic biases of the model.
 
@@ -35,7 +32,7 @@ The results of this work are the following:
 
 The work on interdependence of variable has been assigned to me by Jussi Ylhäisi (jussi.ylhaisi@fmi.fi) in January 2017. The linear regression model on T2 using the T2Obs and the  the ECMWF raw model data is already existed in FMI. I developed the linear regression model on D2 with D2Obs and ECMWF raw model data and calculated the RH based on T2 and D2.
 
-A lot of discussions with Jussi Ylhäisi and other Posse project members were helped me to study this problem deeply. Also I have influenced by the R coding style that exist in FMI and also  Google R code style.
+Discussions with Jussi Ylhäisi and other Posse project members were helped me to study this problem deeply. Also I have influenced by the R coding style that exist in FMI and also  Google R code style.
 
 The work done in this assignment, developing and analyzing the linear regression model, namely mymodel, is fully done by me. I did the  development of linear regression models for T2 and D2 and the calculation of RH on the Kumpula weather station. Jussi Ylhäisi provided the original csv file "station2998_all_data_with_timestamps.csv". I wrote the create_weather_data.R to get the clean data (without NAs and constant variables) and the cleaned data is  saved in the file "data/station2998_T2_D2_Obs_model_data_with_timestamps.csv".
 

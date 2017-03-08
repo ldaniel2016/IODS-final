@@ -1,2 +1,7 @@
-# IODS-final
-Introduction to Open Data Science 2017, University of Helsinki, final assignment
+# IODS-final Assignment.
+
+Here we have the final assignment for the course Introduction to Open Data Science 2017, University of Helsinki.
+
+In this assignment we study the interdependence of the variables in weatherdata. We choose the air temperature at 2 meters (T2)  and the dewpoint temperature at 2 meters (D2) to find their influence on relative humidity RH.
+
+Statistical postprocessing is a method to improve the direct model output from numerical weather prediction (NWP) models. In this assignment we use linear regression models that use observed  air temperature at 2 meters (T2Obs)  and the dewpoint temperature at 2 meters (D2Obs)  to improve the forecast capability of the NWP models. We develop linear regression model for the air temperature at 2 meters (T2)  and the dewpoint temperature at 2 meters (D2). We compare our model with the standard models available in R such as lm, step and glm. We then use the predicted T2 and D2 to calculate the relative humidity, the root mean square error (rmse) for the RH for ECMWF NWP model and for the linear models. The results show that linear regression models reduces the rmse in RH  at most by a factor of 2. The data used for analysis is the weather data for the Kumpula weather station for the four seasons, for 64 forecast periods produced by ECMWF and the T2Obs and D2Obs available at the Finnish Meteorological Institute.

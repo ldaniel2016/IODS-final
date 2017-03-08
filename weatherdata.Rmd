@@ -71,7 +71,7 @@ The "cleaned" weather data, T2_D2_Obs_model_data_with_timestamps,  is loaded fro
 
 We are using 10-day forecasts, we have 2 to 65  different forecast periods  ranging from +0 to +240. Between +0 and +144, the step size is 3 hours, and between +144 and +240, the step size is 6 hours. When the forecast period has a value 2, we get a 3-hour forecast data and if its value is 8, we get a  24-hour or one day forecast data. The forecast period with value 65 represents a 10-day forecast. The forecasts are created two times a day  at 00:00 UTC (Coordinated Universal Time) and 12:00 UTC. This variable is called  analysis time has two values 1 and 2 corresponding to 00:00UTC and 12:00 UTC.  
 
-The response variable T2Obs is at column 6 and the other response variable D2Obs is the last column of the weather data. The columns 8 and 9 gives the ECMF model output for T2 and D2. From the ECMWF model we also have the data for temperature and relative humidity at various pressure levels such as 950 hPa(hecto Pascal), 925 hPa, 850 hPa, 700 hPa and 500 hPa. We also have data on temperature T2_M1,  T_950_M1 (temperature at 950 hPa), T_925_M1 and dewp oint temperature D2_M1 of the corresponding variables at the previous forecast period.
+The response variable T2Obs is at column 6 and the other response variable D2Obs is the last column of the weather data. The columns 8 and 9 gives the ECMF model output for T2 and D2. From the ECMWF model we also have the data for temperature and relative humidity at various pressure levels such as 950 hPa(hecto Pascal), 925 hPa, 850 hPa, 700 hPa and 500 hPa. We also have data on temperature T2_M1,  T_950_M1 (temperature at 950 hPa), T_925_M1 and dew point temperature D2_M1 of the corresponding variables at the previous forecast period.
 
 ECMWF model also provides the temperature at the surface of Earth called skin temperature (SKT), wind velocity at 10 meters  (U_10 and V_10). Declination data is available and it is  defined as the angular distance north or south from the celestial equator measured along a great circle passing through the celestial pole.
 
@@ -88,7 +88,7 @@ str(T2_D2_Obs_model_data_with_timestamps)
 ```
 ## Summary of the weather data set
 
-We can find  the minimum, maximum, and quartile values of the weather data for the columns 6:32 is shown here. We can see that the T2Obs has a mean value of 280K and varies from a minimum value of 247.7 K to a maximum of 303.6K. D2Obs has a mean value of 280K and varies from 244.8K to a maximum of 293.1K
+We can find  the minimum, maximum, and quantile values of the weather data for the columns 6:32 is shown here. We can see that the T2Obs has a mean value of 280K and varies from a minimum value of 247.7 K to a maximum of 303.6K. D2Obs has a mean value of 280K and varies from 244.8K to a maximum of 293.1K
 
 ```{r, warning=FALSE, message=F, echo=TRUE}
 # summary of the weather dataset
@@ -228,7 +228,7 @@ cor_matrix<-cor(T2_D2_Obs_model_data_with_timestamps[,6:ncol(T2_D2_Obs_model_dat
 corrplot(cor_matrix, method="number", type = "upper", cl.pos = "b", tl.pos = "d", tl.cex = 0.6)
 ```
 
-### Scatter plots and distriutions
+### Scatter plots and distributions
 
 When we try to plot the scatter plot for even winter data with all the variables, it was very difficult to visualize the data as we have 26 variables. 
 So we take a smaller set of variables such as "T2Obs", "MSL",  "T2","D2", "U10","V10","TP", "LCC","MCC", "HCC","SKT","RH_950","T_950","T2_M1","T_950_M1","DECLINATION", "D2_M1","D2Obs"  and do the scatter plot.    
@@ -369,7 +369,7 @@ qqnorm(df_summer_00_08$T2); qqline(df_summer_00_08$T2)
 
 ### T2Obs vs T2 from ECMWF model  for Winter forecast period 08
 
-Now we plot some graphs depecting the relation ship between T2Obs ad T2 from ECMWF for winter for one-day forecast. We can observe that at high temperatures there is a linear relationship than for the low values of T2Obs ad T2 from ECMWF. We used to method lm to plot this relationship.
+Now we plot some graphs depicting the relation ship between T2Obs ad T2 from ECMWF for winter for one-day forecast. We can observe that at high temperatures there is a linear relationship than for the low values of T2Obs ad T2 from ECMWF. We used to method lm to plot this relationship.
 
 ```{r, warning=FALSE, message=F, echo=TRUE}
 T2Obs <- df_winter_00_08$T2Obs
@@ -406,7 +406,7 @@ ggplot(df_winter_00_65, aes(x = T2Obs, y = T2)) + geom_point() + xlab("ECMWF mod
 ```
 #### T2Obs vs T2 from ECMWF model for Summer forecast period 08
 
-The following plots show the relation ship between T2Obs and T2 from ECMWF model and T2Obs and T2 from ECMWF model for oneday and 10 day forecasts.
+The following plots show the relation ship between T2Obs and T2 from ECMWF model and T2Obs and T2 from ECMWF model for one-day and 10 day forecasts.
 ```{r, warning=FALSE, message=F, echo=TRUE}
 T2Obs <- df_winter_00_08$T2Obs
 T2 <- df_summer_00_08$T2
@@ -440,7 +440,7 @@ ggplot(df_summer_00_65, aes(x = T2Obs, y = D2)) + geom_point() + xlab("ECMWF mod
 
 #### The difference in T2Obs and T2  from ECMWF model for all the forecast periods and for all seasons.
 
-Now we plot quantiles of the difference in T2Obs and T2  from ECMWF model for all the forecast periods. We caan see that as the length of the forecast period increases, the variation in the quantiles increases both for high temperatures and low temperatures.
+Now we plot quantiles of the difference in T2Obs and T2  from ECMWF model for all the forecast periods. We Can see that as the length of the forecast period increases, the variation in the quantiles increases both for high temperatures and low temperatures.
 
 ```{r, warning=FALSE, message=F, echo=TRUE}
 T2Obs_T2 <- T2_D2_Obs_model_data_with_timestamps$T2Obs - T2_D2_Obs_model_data_with_timestamps$T2

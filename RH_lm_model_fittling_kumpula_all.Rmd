@@ -6,7 +6,7 @@ periods. For ease of analysis we use only the forecasts that are at 00:00 UTC (a
 The linear regression model takes two response variables namely T2Obs and D2Obs, the observations of air temperature and dewpoint temperature at 2 meters. As the predictors we use the ECMWF model outputs. All these variables are explained in the Section on weather data. Using the linear regression models, mymodel, lm, lmstep and glmcv, we predict the
 T2 and D2, the air temperature and dewpoint temperature for 64 forecast periods. We then calculate the relative humidity, RH, using the predicted T2 and D2 using the four  linear regression models. We also calculate the RH using the T2 and D2 from the ECMWF raw model. The relative humidity is calculated using some standard formulas.
 
-The R program is done in a modularised way with functions.
+The R program is done in a modular  way with functions.
 
 ### Linear model prediction
 ```{r, warning=FALSE, message=F, echo=TRUE} 
@@ -283,21 +283,21 @@ ModelsOfAlgorithms <- function(training.set, test.set, parameter) {
 
   
 CalculateRH <- function(wdata) {
-  # Calculates the realative humidity RH using various fitting algorithms
+  # Calculates the relative humidity RH using various fitting algorithms
   #
   # Args
   #   df: dataframe 
   #
   # Returns:
   #   rmse.pred.by.model: rmse of lmstep and glmcv predictions
-  #   rmse.RH.by.model: rmse RH values from the ecmwf, lm, lmstep and glmcv
+  #   rmse.RH.by.model: rmse RH values from the ECMWF, lm, lmstep and glmcv
   
    # Create a list to store the rmse values for predictions and RH using the models values, 
    # predicted values using lm, lmstep, glmcv
   rmse.pred.by.model <- NULL
   rmse.RH.by.model <- NULL
  
-  # Separating T2 and D2 and generating T2_Obs and modeldata aswellas D2_Obs and modeldata
+  # Separating T2 and D2 and generating T2_Obs and model data as well as D2_Obs and model data
   
   T2_Obs_model_data <- wdata[, c(6:(ncol(wdata)-1))]
   D2_Obs_model_data <- cbind(wdata[ncol(wdata)], wdata[,7:(ncol(wdata)-1)])
@@ -431,8 +431,8 @@ CalculateRH <- function(wdata) {
 ### The Main Program 
 # Find the lm, lmstep and glmcv, linear regression models for  Kumpula station data. 
 # We predict the T2 and D2, the air temperature and dewpoint temperature at 2 meters 
-# using the above models. We calculate the relative humidy (RH) with the predcited T2 and D2.
-# We compare T2, D2 and RH of the  ECMWF model with the predcited T2, D2 and RH.
+# using the above models. We calculate the relative humidly (RH) with the predicted T2 and D2.
+# We compare T2, D2 and RH of the  ECMWF model with the pred-cited T2, D2 and RH.
 
 
 # Initializing variables and data structures
@@ -461,7 +461,7 @@ for (s  in 1:4) {
                                                       T2_D2_Obs_model_data_with_timestamps$analysis_time == 1 & 
                                                            T2_D2_Obs_model_data_with_timestamps$forecast_period == f ),]
     
-# The function CalculateRH, calculate the relative humidity from the predicted T2 and D2 using th elinear models.
+# The function CalculateRH, calculate the relative humidity from the predicted T2 and D2 using the linear models.
     
     results <- CalculateRH(df)
     rmse.T2D2 <- rbind(rmse.T2D2, results$rmse.pred.by.model)
@@ -488,7 +488,7 @@ for (s  in 1:4) {
 ```
 ### Results
 
-####Quartiles of T2 and D2
+####Quantiles of T2 and D2
 
 ```{r, warning=FALSE, message=F, echo=TRUE} 
 
@@ -540,18 +540,18 @@ summary(df_4[,5:9])
 
 
 
-### Plots
+### Plots : rmse in predictions of T2 and D2 for  Winter data 
+
+We plot the rmse in predictions of T2 and D2 using the T2 and D2 obtained from ECMWF model and also from the linear models mymodel, lm, lmstep and glmcv for the winter data. The plots show that the rmse in T2 and D2 are  smaller in our linear predictions models than the T2 and D2 from ECMWF model. The model mymodel predictions are comparable that of other linear regression models.
+
 ```{r, warning=FALSE, message=F, echo=TRUE} 
 
 require(ggplot2)
 require(reshape)
 
 df.rmse.pred <- as.data.frame(rmse.pred.station.season.atime.fperiod)
-df.rmse.rh <-  as.data.frame(rmse.rh.station.season.atime.fperiod)
-
-
 df_winter_pred_model <- df.rmse.pred[which(df.rmse.pred$season == 1),]
-df_winter_rh_model <- df.rmse.rh[which(df.rmse.rh$season == 1),]
+
 
 df_winter_T2_pred_model <- df_winter_pred_model[, c(4:9)]
 df_winter_D2_pred_model <- df_winter_pred_model[, c(4,10:14)]
@@ -561,8 +561,20 @@ fperiod <- df_winter_T2_pred_model$fperiod
 molten <- melt(df_winter_T2_pred_model, id.vars = 'fperiod', variable_name = "model")
 ggplot(molten, aes(x=fperiod, y=value, colour = model )) + geom_line()+xlab("forecast period") + ylab("RMSE") + ggtitle("RMSE in T2 prediction with  linear regression models for the winter season")
 
+
 molten <- melt(df_winter_D2_pred_model, id.vars = 'fperiod', variable_name = "model")
 ggplot(molten, aes(x=fperiod, y=value, colour = model )) + geom_line()+xlab("forecast period") + ylab("RMSE") + ggtitle("RMSE in D2 prediction with  linear regression models for the winter season")
+```
+
+
+### Plots : rmse in  RH for the Winter data 
+
+We plot the rmse in RH which depends on the  T2 and D2. We plot the RH based on the T2 and D2  obtained from ECMWF model and also from the linear models mymodel, lm, lmstep and glmcv. We see that the the errors in T2 and D2 are amplified in RH. The plots show that the rmse is reduced by at most half in our linear predictions model.
+
+```{r, warning=FALSE, message=F, echo=TRUE} 
+
+df.rmse.rh <-  as.data.frame(rmse.rh.station.season.atime.fperiod)
+df_winter_rh_model <- df.rmse.rh[which(df.rmse.rh$season == 1),]
 
 df_winter_rh_model <- df_winter_rh_model[, c(4:9)]
 
@@ -571,6 +583,8 @@ ggplot(molten, aes(x=fperiod, y=value, colour = model )) + geom_line()+xlab("for
 ```
 
 ### RMSE T2 in all seasons
+The three plots below give the quantile values of prediction errors in T2, D2 and RH in all seasons. we can see that mymodel has the lowest quantile values for T2 and similar values for D2. The median RH value for the ECMWF model is almost double as the RH value obtained from the models.
+
 ```{r, warning=FALSE, message=F, echo=TRUE} 
 
 df.rmse.pred.station.fperiod <- df.rmse.pred[,c(2, 4:9)]
@@ -599,11 +613,13 @@ ggplot(molten, aes(x= season, y=value, colour = model )) + geom_boxplot()+xlab("
 ```
 
 
-## Disussions
-
 ## Conclusions and future directions
 
-## Ackmowledgements
+Statistical postprocessing is a method to improve the direct model output from numerical weather prediction (NWP) models. In this assignment we use linear regression models that use observed  air temperature at 2 meters (T2Obs)  and the dewpoint temperature at 2 meters (D2Obs)  to improve the forecast capability of the NWP models. We develop a linear regression model called mymodel,  for the air temperature at 2 meters (T2)  and the dew point temperature at 2 meters (D2). We compare our model with the standard models available in R such as lm, step and glm. We then use the predicted T2 and D2 to calculate the relative humidity. the root mean square error (rmse) for the RH for ECMWF NWP model and for the linear models. The results show that linear regression models reduces the rmse in RH  at most by a factor of 2. The data used for analysis is the weather data for the Kumpula weather station for the four seasons, for 64 forecast periods produced by ECMWF and the T2Obs and D2Obs available at the Finnish Meteorological Institute.
 
-I am grateful to the POSSE project manager Mikko Rauhala for allowing me to present the work I have been doing in the project as my final assignment for the IODS course. I am grateful to Jussi Ylhäisi for giving the problem of finding the interdependence of variables, providing me with the data on Ku,pula weather station and for the everyday  discussions on weather data and modelling. My deep gratitude goes  to the IODS course instructors, my fellow students whose assignments I have peer reviewed  and  who have reviewed my course work. They have taught me how to understand a data science problem, comprehend the variables in the problem and analyze the problem deeply. 
+Our study shows that statistical postprocessing improves the prediction capability of a model. We observed that the prediction errors in  variable is amplified/influenced by the prediction errors in its dependent variables. In this study we use only linear regression models. In future we would like to experiment the problem of interdependence with principle component analysis (PCA) and principle component regression (PCR) to predict the variables and their dependent variables.
+
+## Acknowledgments
+
+I am grateful to the POSSE project manager Mikko Rauhala (mikko.rauhala@fmi.fi) for allowing me to present the work I have been doing in the project as my final assignment for the IODS course. I am grateful to Jussi Ylhäisi for giving the problem of finding the interdependence of variables, providing me with the data on Kumpula weather station and for the everyday  discussions on weather data and modelling. My deep gratitude goes  to the IODS course instructors, my fellow students whose assignments I have peer reviewed  and  who have reviewed my course work. They have taught me how to understand a data science problem, comprehend the variables in the problem and analyze the problem deeply. 
 
