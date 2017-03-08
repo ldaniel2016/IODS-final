@@ -2,7 +2,7 @@
 title: "IODS final assignment: Interdependance of variables in weather data"
 author: "Laila Daniel"
 email: laila.daniel@cs.helsinki.fi
-date: "February 27, 2017"
+date: "March 8, 2017"
 output: html_document
 ---
 
@@ -32,9 +32,3 @@ knitr::opts_chunk$set(echo = TRUE)
   
 ***
 
-## Research problem 
-
-## Link to Datawrangling script
-
-
-## Description of the research problem
