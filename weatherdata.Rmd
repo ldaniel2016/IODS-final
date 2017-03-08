@@ -236,6 +236,7 @@ So we take a smaller set of variables such as "T2Obs", "MSL",  "T2","D2", "U10",
 ```{r, warning=FALSE, message=F, echo=TRUE}
 library (ggplot2)
 library (GGally)
+df_winter_00_08 <- T2_D2_Obs_model_data_with_timestamps[which(T2_D2_Obs_model_data_with_timestamps$forecast_period == 8 & T2_D2_Obs_model_data_with_timestamps$analysis_time == 1 & T2_D2_Obs_model_data_with_timestamps$season == 1),]
 df_winter_00_08_small <- df_winter_00_08[, c(6, 7,8, 9,10, 11,12,13,14,15,16,17,18,27,28,30,31,32)]
 ggpairs(df_winter_00_08_small[,1:ncol(df_winter_00_08_small)], mapping = aes(), lower = list(combo = wrap("facethist", bins = 20))) + ggtitle("Matrix of scatter plots and distributions of weather data")
 ```
