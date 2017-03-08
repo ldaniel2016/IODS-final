@@ -503,16 +503,16 @@ for (s in 1:4) {
 }
 
 # Winter 
-summary(df_1[,5:12])
+summary(df_1[,5:14])
 
 # Spring
-summary(df_2[,5:12])
+summary(df_2[,5:14])
 
 # Summer
-summary(df_3[,5:12])
+summary(df_3[,5:14])
 
 # Autumn
-summary(df_4[,5:12])
+summary(df_4[,5:14])
 ```
 
 
@@ -524,27 +524,19 @@ for (s in 1:4) {
 }
 
 # Winter 
-summary(df_1[,5:8])
+summary(df_1[,5:9])
 
 # Spring
-summary(df_2[,5:8])
+summary(df_2[,5:9])
 
 # Summer
-summary(df_3[,5:8])
+summary(df_3[,5:9])
 
 # Autumn
-summary(df_4[,5:8])
+summary(df_4[,5:9])
 
 
 ```
-
-
-df_winter_pred_model <- df.rmse.pred[which(df.rmse.pred$season == 1),]
-df_winter_rh_model <- df.rmse.rh[which(df.rmse.rh$season == 1),]
-
-
-
-
 
 
 
@@ -561,8 +553,8 @@ df.rmse.rh <-  as.data.frame(rmse.rh.station.season.atime.fperiod)
 df_winter_pred_model <- df.rmse.pred[which(df.rmse.pred$season == 1),]
 df_winter_rh_model <- df.rmse.rh[which(df.rmse.rh$season == 1),]
 
-df_winter_T2_pred_model <- df_winter_pred_model[, c(4:8)]
-df_winter_D2_pred_model <- df_winter_pred_model[, c(4,9:12)]
+df_winter_T2_pred_model <- df_winter_pred_model[, c(4:9)]
+df_winter_D2_pred_model <- df_winter_pred_model[, c(4,10:14)]
 fperiod <- df_winter_T2_pred_model$fperiod
 
 
@@ -572,7 +564,7 @@ ggplot(molten, aes(x=fperiod, y=value, colour = model )) + geom_line()+xlab("for
 molten <- melt(df_winter_D2_pred_model, id.vars = 'fperiod', variable_name = "model")
 ggplot(molten, aes(x=fperiod, y=value, colour = model )) + geom_line()+xlab("forecast period") + ylab("RMSE") + ggtitle("RMSE in D2 prediction with  linear regression models for the winter season")
 
-df_winter_rh_model <- df_winter_rh_model[, c(4:8)]
+df_winter_rh_model <- df_winter_rh_model[, c(4:9)]
 
 molten <- melt(df_winter_rh_model, id.vars = 'fperiod', variable_name = "model")
 ggplot(molten, aes(x=fperiod, y=value, colour = model )) + geom_line()+xlab("forecast period") + ylab("RMSE") + ggtitle("RMSE in RH with  linear regression models for the winter season")
@@ -581,7 +573,7 @@ ggplot(molten, aes(x=fperiod, y=value, colour = model )) + geom_line()+xlab("for
 ### RMSE T2 in all seasons
 ```{r, warning=FALSE, message=F, echo=TRUE} 
 
-df.rmse.pred.station.fperiod <- df.rmse.pred[,c(2, 4:8)]
+df.rmse.pred.station.fperiod <- df.rmse.pred[,c(2, 4:9)]
 
 molten <- melt(df.rmse.pred.station.fperiod , id.vars = c("season", "fperiod"), variable_name = "model")
 ggplot(molten, aes(x= season, y=value, colour = model )) + geom_boxplot()+xlab("seasons(1:4)") + ylab("RMSE") + ggtitle("RMSE in T2 with  linear regression models for four seasons")
@@ -591,7 +583,7 @@ ggplot(molten, aes(x= season, y=value, colour = model )) + geom_boxplot()+xlab("
 ### RMSE D2 in all seasons
 ```{r, warning=FALSE, message=F, echo=TRUE} 
 
-df.rmse.pred.station.fperiod <- df.rmse.pred[,c(2, 4,9:12)]
+df.rmse.pred.station.fperiod <- df.rmse.pred[,c(2, 4,10:14)]
 
 molten <- melt(df.rmse.pred.station.fperiod , id.vars = c("season", "fperiod"), variable_name = "model")
 ggplot(molten, aes(x= season, y=value, colour = model )) + geom_boxplot()+xlab("seasons(1:4)") + ylab("RMSE") + ggtitle("RMSE in D2 with  linear regression models for four seasons")
@@ -600,7 +592,7 @@ ggplot(molten, aes(x= season, y=value, colour = model )) + geom_boxplot()+xlab("
 ### RMSE in all seasons
 ```{r, warning=FALSE, message=F, echo=TRUE} 
 
-df.rmse.rh.station.fperiod <- df.rmse.rh[,c(2, 4:8)]
+df.rmse.rh.station.fperiod <- df.rmse.rh[,c(2, 4:9)]
 
 molten <- melt(df.rmse.rh.station.fperiod , id.vars = c("season", "fperiod"), variable_name = "model")
 ggplot(molten, aes(x= season, y=value, colour = model )) + geom_boxplot()+xlab("seasons(1:4)") + ylab("RMSE") + ggtitle("RMSE in RH with  linear regression models for four seasons")
@@ -611,4 +603,7 @@ ggplot(molten, aes(x= season, y=value, colour = model )) + geom_boxplot()+xlab("
 
 ## Conclusions and future directions
 
-Ackmowledgements
+## Ackmowledgements
+
+I am grateful to the POSSE project manager Mikko Rauhala for allowing me to present the work I have been doing in the project as my final assignment for the IODS course. I am grateful to Jussi Ylhäisi for giving the problem of finding the interdependence of variables, providing me with the data on Ku,pula weather station and for the everyday  discussions on weather data and modelling. My deep gratitude goes  to the IODS course instructors, my fellow students whose assignments I have peer reviewed  and  who have reviewed my course work. They have taught me how to understand a data science problem, comprehend the variables in the problem and analyze the problem deeply. 
+

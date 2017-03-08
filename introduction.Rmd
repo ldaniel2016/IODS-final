@@ -1,30 +1,41 @@
 #  Assignment problem: 
-###The interdependance of T2 (surface temperature at 2 meters) and D2 (dewpoint temperature at 2 meters)
+## The interdependence of variables in the weather data
 
 ## Abstract
+Statistical postprocessing is a method to improve the direct model output from numerical weather prediction (NWP) models. In this assignment we use linear regression models that use observed  air temperature at 2 meters (T2Obs)  and the dewpoint temperature at 2 meters (D2Obs)  to improve the forecast capability of the NWP models. We develop linear regression models for the air temperature at 2 meters (T2)  and the dewpoint temperature at 2 meters (D2). We compare our model with the standard models available in R such as lm, step and glm. We then use the predicted T2 and D2 to calculate the relative humidity. The root mean square error (rmse) for the RH for ECMWF NWP model and for the linear models. The results show that linear regression models reduces the rmse in RH  at most by a factor of 2. The data used for analysis is the weather data for the Kumpula weather station for the four seasons, for 64 forecast periods produced by ECMWF and the T2Obs and D2Obs available at the Finnish Meteorological Institute.
 
 ## Research question
 
 Statistical postprocessing is a method to improve the direct model output from numerical weather prediction models. It enhances the NWP's ability to forecast by relating the model output to observational or additional model data using statistical methods. It incorporates the local observations to the model output to reduce the systematic biases of the model.
 
-Model Output Statistics (MOS) is a type of statisitical post-processing technique.  MOS was defined by [Glahn and Lowry](http://journals.ametsoc.org/doi/pdf/10.1175/1520-0450%281972%29011%3C1203%3ATUOMOS%3E2.0.CO%3B2) in 1972 as the following: 
-Model Output Statistics is an objective weather forecasting technique which consisists of determining a statistical relationship between a predictand and variables forecast by a numerical model at some projection time(s). It is, in effect, the determination of the "weather related" statistics of a numerical model. 
+Model Output Statistics (MOS) is a type of statistical post-processing technique.  MOS was defined by [Glahn and Lowry](http://journals.ametsoc.org/doi/pdf/10.1175/1520-0450%281972%29011%3C1203%3ATUOMOS%3E2.0.CO%3B2) in 1972 as the following: 
+Model Output Statistics is an objective weather forecasting technique which consists of determining a statistical relationship between a predictand and variables forecast by a numerical model at some projection time(s). It is, in effect, the determination of the "weather related" statistics of a numerical model. 
 
 The Finnish Meteorological Institute (FMI) has started a project called POSSE that aims  to improve the accuracy of weather forecasts by incorporating the raw forecasts and local observations  with statistical models. In POSSE, the  methodology for statistical post-processing of weather forecasts is the MOS and it  consists of determining a statistical relationship between the response variable, for example, the  observed temperature, and the predictor variables such as  mean sea level pressure,high cloud cover etc. The vision of POSSE is to enable FMI to produce cost-efficient, reliable, and competitive forecasts in Finland and around the world.
 
-In the POSSE project, work has already been done in improving the forecasts by incorporating the observed temperature at 2 meters with the numerical weather model obtained from [ECMWF](www.ecmwf.int) (European Centre for Medium-Range Weather Forecasts). This assignment problem is a part of my work in the POSSE project where we analyse the interdependance of variables of the forecast model. 
+In the POSSE project, work has already been done in improving the forecasts by incorporating the observed temperature at 2 meters with the numerical weather model obtained from [ECMWF](www.ecmwf.int) (European Centre for Medium-Range Weather Forecasts). This assignment problem is a part of my work in the POSSE project where we analyze the interdependence of variables of the forecast model. 
  
-Specifically in this assignment, we carry out the interdependance of T2, the air temperature at 2 meters, and D2, the dewpoint temperature at 2 meters.  
+Specifically in this assignment, we carry out the interdependence of T2, the air temperature at 2 meters, and D2, the dewpoint temperature at 2 meters.  
 
 Dewpoint temperature  indicates the amount moisture in the air. A high dewpoint indicate a higher moisture content of the air at a given temperature. The dewpoint temperature is defined as the the temperature at which the air cannot hold all the water vapour which is mixed with it and it has to condense some water vapour. The dew point temperature is always lower than or equal to the air temperature.
 
-Relative humidity (RH) indicates how moist the air is. The air has high high relative humidity, when the air temperature and the dew point temperatures are very close.  When there is a large difference between air and dew point temperatures the air has a low  relaitve humidity.
+Relative humidity (RH) indicates how moist the air is. The air has high high relative humidity, when the air temperature and the dew point temperatures are very close.  When there is a large difference between air and dew point temperatures the air has a low  relative humidity.
 The dew point is associated with relative humidity. A high relative humidity indicates that the dew point is closer to the current air temperature. Relative humidity of 100% indicates the dew point is equal to the current air temperature and that the air is maximally saturated with water. When the dew point remains constant and temperature increases, relative humidity decreases.
 
-We have the ECMWF model outputs on T2, D2 and also the observed temperature and dewpoint temperature at 2 meters,  T2Obs and D2Obs respectively. We develop a linear regression model with response variable T2Obs and the model forecast from ECMWF and predict T2.  Similar linear regression is carried out with response variable  D2Obs and the model forecast from ECMWF to predict D2.  We then calculate the Relative Humidity (RH) which is a function of T2 and D2.
+We have the ECMWF model outputs on T2, D2 and also the observed temperature and dewpoint temperature at 2 meters,  T2Obs and D2Obs respectively. We develop a linear regression model with response variable T2Obs and the model forecast from ECMWF and predict T2.  Similar linear regression is carried out with response variable  D2Obs and the model forecast from ECMWF to predict D2.  We then calculate the Relative Humidity (RH) which is a function of T2 and D2. We compare our linear regression model with the linear regression models available in R  simple linear regression(lm), linear regression with step method and linear regression with cross validation (glm.cv). 
 
-In this assignment we use simple linear regression(lm), linear regression with step method and linear regression with cross validation (glm.cv). 
+The results of this work are the following:
+*1. Our linear regression model is comparable with the lm, lmstep and glm models.
+*2. The errors in the prediction of variables amplifies the errors in the variable which depend on the predicted variables. For  example, errors in relative humidity amplifies the errors in the predicted air temperature at 2 meters (T2)  and the dewpoint temperature at 2 meters (D2).
+*3.  The results show that linear regression models reduces the rmse in RH  at most by a factor of 2.
+*4. The statistical postprocessing with MOS methodology where we use the linear regression model with observed air temperature at 2 meters (T2Obs)  and the dewpoint temperature at 2 meters (D2Obs) improves the forecast model.
 
-The results show that statistical postprocessing with MOS methodoly where we use linear regression improves the forecast model.
 
-## Contributions
+## My Contributions
+
+The work on interdependence of variable has been assigned to me by Jussi Ylhäisi (jussi.ylhaisi@fmi.fi) in January 2017. The linear regression model on T2 using the T2Obs and the  the ECMWF raw model data is already existed in FMI. I developed the linear regression model on D2 with D2Obs and ECMWF raw model data and calculated the RH based on T2 and D2.
+
+A lot of discussions with Jussi Ylhäisi and other Posse project members were helped me to study this problem deeply. Also I have influenced by the R coding style that exist in FMI and also  Google R code style.
+
+The work done in this assignment, developing and analyzing the linear regression model, namely mymodel, is fully done by me. I did the  development of linear regression models for T2 and D2 and the calculation of RH on the Kumpula weather station. Jussi Ylhäisi provided the original csv file "station2998_all_data_with_timestamps.csv". I wrote the create_weather_data.R to get the clean data (without NAs and constant variables) and the cleaned data is  saved in the file "data/station2998_T2_D2_Obs_model_data_with_timestamps.csv".
+
