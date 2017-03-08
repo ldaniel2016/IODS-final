@@ -1,0 +1,547 @@
+## Linear regression models for Kumpula station 
+This section is divided into (1) model prediction and (2) analysis and results.
+We predict the linear regression model for the Kumpula station for the four seasons and for the 64 forecast
+periods. For ease of analysis we use only the forecasts that are at 00:00 UTC (analysis_time is 1). We use the simple linear regression(lm), linear regression with step method and linear regression with cross validation (glm.cv).
+
+The linear regression model takes two response variables namely T2Obs and D2Obs, the observations of air temperature and dewpoint temperature at 2 meters. As the predictors we use the ECMWF model outputs. All these variables are explained in the Section on weather data. Using the linear regression model, we predict the
+T2 and D2, the air temperature and dewpoint temperature for 64 forecast periods. We then calculate the relative humidity, RH, using the predicted T2 and D2 using the three linear regression models. We also calculate the RH using the T2 and D2 from the ECMWF raw model. The relative humidity is calculated using some standard formulas.
+
+The R program is done in a modularised way with functions.
+
+### Linear model prediction
+```{r, warning=FALSE, message=F, echo=TRUE} 
+
+# Packages 
+# reshape package for melt operation 
+library(reshape2)
+
+# glm and glm.cv
+library(boot)
+
+FitWithLM <- function(training.set, test.set = NULL) {
+  # Estimates a full linear model and predicts with the model.
+  #
+  # Args:
+  #   training.set:
+  #   test.set:
+  #
+  # Returns:
+  #   A list of coefficients, residuals and fitted values.
+  
+  response <- colnames(training.set)[1]
+  formula <- paste(response, " ~ .", sep = "")
+  model <- lm(formula = formula, data = training.set)
+  
+  if (is.null(test.set)) {
+    test.set <- training.set
+  }
+  
+  fitted.values <- predict(object = model, newdata = test.set)
+  residuals <- test.set[,1] - fitted.values
+  
+  fitted.values <- as.numeric(fitted.values)
+  residuals <- as.numeric(residuals)
+  
+  results <- list("coefficients" = model$coefficients,
+                  "residuals" = residuals,
+                  "fitted.values" = fitted.values)
+  
+  class(results) <- "simplelm"
+  
+  return(results)
+}
+
+FitWithStep <- function(training.set, test.set = NULL,
+                        object.formula, upper.formula, lower.formula,
+                        direction, steps = 1000) {
+  
+  
+  # Chooses a linear model by a stepwise algorithm and predicts a fit on an independant test data
+  #
+  # Args:
+  #   training.set: a data matrix
+  #   test.set: a data matrix
+  #   object.formula: a formula viable for a linear model
+  #   upper.formula: a formula viable for a linear model
+  #   lower.formula: a formula viable for a linear model
+  #   direction: both/forward/backward
+  #   steps: the number of steps the algorithm is allowed to take
+  # 
+  # Returns:
+  #   A list of coefficients, residuals and fitted values.
+  
+  # saving the training and the test set to global environment
+  training.set <- training.set
+  test.set <- test.set
+  
+  # generating the linear models
+  object.lm <- lm(object.formula, data = training.set)
+  upper.lm <- lm(upper.formula, data = training.set)
+  lower.lm <- lm(lower.formula, data = training.set)
+  
+  # choosing the best model
+  step.model <- step(object = object.lm,
+                     scope = list(upper = upper.lm, lower = lower.lm),
+                     direction = direction, trace = 0 , steps = steps)
+  
+  # if there are no test data, the fit is calculated using the training data
+  if (is.null(test.set)) {
+    test.set <- training.set
+  }
+  
+  # calculating the fit
+  fitted.values <- predict(object = step.model, newdata <- test.set)
+  
+  fitted.values <- as.numeric(fitted.values)
+  residuals <- as.numeric(test.set[,1] - fitted.values)
+  coefficients <- step.model$coefficients
+  
+  results <- list("coefficients" = coefficients,
+                  "residuals" = residuals,
+                  "fitted.values" = fitted.values)
+  
+  class(results) <- "simplelm"
+  return(results)
+}
+
+
+FitWithglmcv<- function(training.set, test.set = NULL, k) {
+  # Estimates a full glm linear model with cross validation  and predicts with the model.
+  #
+  # Args:
+  #   training.set:
+  #   test.set:
+  #   number of folds
+  # Returns:
+  #   A list of coefficients, residuals and fitted values.
+  
+  response <- colnames(training.set)[1]
+  formula <- paste(response, " ~ .", sep = "")
+  model <- lm(formula = formula, data = training.set)
+  
+  set.seed(123)
+  cv.error.10 = rep(0, 10)
+  for (i in 1:10) {
+    model  = glm(formula = formula, data = training.set)
+    cv.error.10[i] = cv.glm(training.set, model, K = k)$delta[1]
+    cv.error.10
+}
+
+    
+  if (is.null(test.set)) {
+    test.set <- training.set
+  }
+  
+  fitted.values <- predict(object = model, newdata = test.set)
+  residuals <- test.set[,1] - fitted.values
+  
+  fitted.values <- as.numeric(fitted.values)
+  residuals <- as.numeric(residuals)
+  
+  results <- list("coefficients" = model$coefficients,
+                  "residuals" = residuals,
+                  "fitted.values" = fitted.values)
+  
+  class(results) <- "simplelm"
+  
+  return(results)
+}
+
+
+ModelsOfAlgorithms <- function(training.set, test.set) {
+  # Models generated using different algorithms, currently with lm, lmstep and glmcv
+  # 
+  #
+  # Args:
+  #   training.set:
+  #   test.set:
+  #
+  # Returns:
+  # A list of elements ' fitted_models', 'residuals', and 'response' variable
+  
+  # model details 
+  response <- colnames(training.set)[1]
+  fInitial <- as.formula(paste(response, " ~ 1", sep = ""))
+  fFull <- as.formula(paste(response, " ~ .", sep = ""))
+  
+  # Create a list to store the model results for T2 and D2 observations
+  fitted.values.by.algorithm <- as.data.frame(matrix(NA, ncol = 0, 
+                                                        nrow=nrow(test.set)))
+  residuals.by.algorithm <- as.data.frame(matrix(NA, ncol = 0,
+                                                    nrow = nrow(test.set)))
+ 
+  elapsed.time.by.algorithm <- NULL
+ 
+  
+  # lm 
+  tmp.time.result <- system.time(
+    tmp.result <- FitWithLM(
+                    training.set, test.set
+                  )
+  )
+  
+  fitted.values.by.algorithm$lm <- tmp.result$fitted.values
+  residuals.by.algorithm$lm <- tmp.result$residuals
+  elapsed.time.by.algorithm<- c(elapsed.time.by.algorithm,
+                                lm = tmp.time.result[[3]])
+  
+  
+  
+  # lm step model 
+  
+  tmp.time.result <- system.time(
+    tmp.result <- FitWithStep(
+                    training.set, 
+                    test.set, 
+                    fInitial, fFull, fInitial, 
+                    direction = "forward", steps = 1000)
+  )
+  
+  fitted.values.by.algorithm$lmstep <- tmp.result$fitted.values
+  residuals.by.algorithm$lmstep <- tmp.result$residuals
+  elapsed.time.by.algorithm<- c(elapsed.time.by.algorithm,
+                                    lmstep =tmp.time.result[[3]])
+  
+ 
+  # glm cv model
+   
+  tmp.time.result <- system.time(
+    tmp.result <- FitWithglmcv(
+      training.set, 
+      test.set, 
+      k = 4
+      )
+  )
+  
+  fitted.values.by.algorithm$glmcv <- tmp.result$fitted.values
+  residuals.by.algorithm$glmcv <- tmp.result$residuals
+  elapsed.time.by.algorithm <- c(elapsed.time.by.algorithm,
+                                 glmcv = tmp.time.result[[3]])
+  
+   results  <-  list(fitted.values = fitted.values.by.algorithm,
+                      residuals = residuals.by.algorithm,
+                      elapsed.time = elapsed.time.by.algorithm)
+  
+  
+  return(results)
+}
+
+
+  
+CalculateRH <- function(wdata) {
+  # Calculates the realative humidity RH using various fitting algorithms
+  #
+  # Args
+  #   df: dataframe 
+  #
+  # Returns:
+  #   rmse.pred.by.model: rmse of lmstep and glmcv predictions
+  #   rmse.RH.by.model: rmse RH values from the ecmwf, lm, lmstep and glmcv
+  
+   # Create a list to store the rmse values for predictions and RH using the models values, 
+   # predicted values using lm, lmstep, glmcv
+  rmse.pred.by.model <- NULL
+  rmse.RH.by.model <- NULL
+ 
+  # Separating T2 and D2 and generating T2_Obs and modeldata aswellas D2_Obs and modeldata
+  
+  T2_Obs_model_data <- wdata[, c(6:(ncol(wdata)-1))]
+  D2_Obs_model_data <- cbind(wdata[ncol(wdata)], wdata[,7:(ncol(wdata)-1)])
+
+  
+  
+   # Splitting into train and test data
+  n <- nrow(T2_Obs_model_data)
+  train = sample(1:n, size = round(0.75*n), replace=FALSE)
+  T2_Obs_model_data_train <- T2_Obs_model_data[train,]
+  T2_Obs_model_data_test <-  T2_Obs_model_data[-train,]
+  D2_Obs_model_data_train <- D2_Obs_model_data[train,]
+  D2_Obs_model_data_test <-  D2_Obs_model_data[-train,]
+  
+   
+  # Models and predictions for T2 and D2
+  
+  results.T2 <- ModelsOfAlgorithms(T2_Obs_model_data_train, T2_Obs_model_data_test)
+  results.D2 <- ModelsOfAlgorithms(D2_Obs_model_data_train, D2_Obs_model_data_test)
+  
+  
+  # T2 and D2 observation and model data  
+  T2_obs_test <- T2_Obs_model_data_test[,1]
+  D2_obs_test <- D2_Obs_model_data_test[,1]
+  
+  T2_model_test <- T2_Obs_model_data_test[,3]
+  D2_model_test <- D2_Obs_model_data_test[,4]
+  
+  
+  # T2 and D2 from predictions using lm, lmstep and glmcv
+  
+  T2_pred_lm <- results.T2$fitted.values$lm
+  T2_pred_lmstep <- results.T2$fitted.values$lmstep
+  T2_pred_glmcv<- results.T2$fitted.values$glmcv
+
+  
+  D2_pred_lm <- results.D2$fitted.values$lms
+  D2_pred_lmstep <- results.D2$fitted.values$lmstep
+  D2_pred_glmcv<- results.D2$fitted.values$glmcv
+
+  # rmse for T2 and  D2 obtained using the rawmodel,lm, lmstep and glmcv  models
+  rmse.T2.raw <- sqrt(mean((T2_obs_test - T2_model_test)^2))
+  rmse.T2.lm <- sqrt(mean(results.T2$residuals$lm^2))
+  rmse.T2.lm <- sqrt(mean(results.T2$residuals$lm^2))
+  rmse.T2.lmstep <- sqrt(mean(results.T2$residuals$lmstep^2))
+  rmse.T2.glmcv <- sqrt(mean(results.T2$residuals$glmcv^2))
+ 
+  rmse.D2.raw <- sqrt(mean((D2_obs_test - D2_model_test)^2))
+  rmse.D2.lm <- sqrt(mean(results.D2$residuals$lm^2))
+  rmse.D2.lmstep <- sqrt(mean(results.D2$residuals$lmstep^2))
+  rmse.D2.glmcv <- sqrt(mean(results.D2$residuals$glmcv^2))
+
+   rmse.pred.by.model<- c(rmse.pred.by.model,
+                        T2raw = rmse.T2.raw,
+                        T2lm = rmse.T2.lm,
+                        T2lmstep = rmse.T2.lmstep,
+                        T2glmcv = rmse.T2.glmcv,
+                        D2raw = rmse.D2.raw,
+                        D2lm = rmse.D2.lm,
+                        D2lmstep = rmse.D2.lmstep,
+                        D2glmcv = rmse.D2.glmcv
+                    )
+   
+   
+   
+  # Relative humidity (RH) calculation
+   
+  saturation_humidity_obs <-  6.112*exp((17.62*T2_obs_test)/(T2_obs_test + 243.12))
+  specific_humidity_obs <-  6.112*exp((17.62*D2_obs_test)/(D2_obs_test + 243.12))
+  RH_obs <- 100*(specific_humidity_obs/saturation_humidity_obs)
+ 
+  saturation_humidity_model <-  6.112*exp((17.62*T2_model_test)/(T2_obs_test + 243.12))
+  specific_humidity_model <-  6.112*exp((17.62*D2_model_test)/(D2_obs_test + 243.12))
+  RH_model <- 100*(specific_humidity_model/saturation_humidity_model)
+  
+  # predicted T2, D2 using lm, lmstep and glmcv
+  
+  saturation_humidity_pred_lm <-  6.112*exp((17.62*T2_pred_lm)/(T2_pred_lm + 243.12))
+  specific_humidity_pred_lm <-  6.112*exp((17.62*D2_pred_lm)/(D2_pred_lm + 243.12))
+  RH_pred_lm <- 100*(specific_humidity_pred_lm/saturation_humidity_pred_lm)
+  
+  saturation_humidity_pred_lmstep <-  6.112*exp((17.62*T2_pred_lmstep)/(T2_pred_lmstep + 243.12))
+  specific_humidity_pred_lmstep <-  6.112*exp((17.62*D2_pred_lmstep)/(D2_pred_lmstep + 243.12))
+  RH_pred_lmstep <- 100*(specific_humidity_pred_lmstep/saturation_humidity_pred_lmstep)
+  
+  
+  saturation_humidity_pred_glmcv <-  6.112*exp((17.62*T2_pred_glmcv)/(T2_pred_glmcv + 243.12))
+  specific_humidity_pred_glmcv <-  6.112*exp((17.62*D2_pred_glmcv)/(D2_pred_glmcv + 243.12))
+  RH_pred_glmcv <- 100*(specific_humidity_pred_glmcv/saturation_humidity_pred_glmcv)
+  
+  
+  # rmse for RH
+  rmse_RH_model <- sqrt(mean((RH_model - RH_obs)^2))
+  rmse_RH_lm <- sqrt(mean((RH_pred_lm - RH_obs)^2))
+  rmse_RH_lmstep <- sqrt(mean((RH_pred_lmstep - RH_obs)^2))
+  rmse_RH_glmcv <- sqrt(mean((RH_pred_glmcv - RH_obs)^2))
+ 
+  
+  rmse.RH.by.model<- c(rmse.RH.by.model,
+                       rawmodelRH = rmse_RH_model,
+                       lmRH = rmse_RH_lm,
+                       lmstepRH = rmse_RH_lmstep,
+                       glmcvRH = rmse_RH_glmcv
+   )
+  
+  
+  #cat("RH model rmse=", rmse_RH_model, "RH lm rmse=", rmse_RH_lm, 
+  #     "RH lmstep rmse=", rmse_RH_lmstep,  "RH glmcv rmse=", rmse_RH_glmcv)
+ 
+  results <- list(rmse.pred.by.model = rmse.pred.by.model,
+                  rmse.RH.by.model = rmse.RH.by.model)
+ return(results)
+  
+  
+}
+
+
+### The Main Program 
+# Find the lm, lmstep and glmcv, linear regression models for  Kumpula station data. 
+# We predict the T2 and D2, the air temperature and dewpoint temperature at 2 meters 
+# using the above models. We calculate the relative humidy (RH) with the predcited T2 and D2.
+# We compare T2, D2 and RH of the  ECMWF model with the predcited T2, D2 and RH.
+
+
+# Initializing variables and data structures
+station_id <- 2998
+analysis_time <- 1 
+
+
+rmse.T2D2 <- NULL
+rmse.RH <- NULL
+stn.season.atime.fperiod <- NULL
+rmse.pred.station.season.atime.fperiod  <- NULL
+rmse.rh.station.season.atime.fperiod  <- NULL
+
+# loading the Kumpula data from the file data/station2998_T2_D2_Obs_model_data_with_timestamps.csv.
+# This data is created using our program "create_weather_data.R"
+
+T2_D2_Obs_model_data_with_timestamps = read.table(file = "data/station2998_T2_D2_Obs_model_data_with_timestamps.csv", sep = ",", header = TRUE)
+
+
+# We separately model the data for the four seasons and 64 forecast periods (2:64)
+
+for (s  in 1:4) {
+  for(f in 2:65) { 
+
+    df <- T2_D2_Obs_model_data_with_timestamps[which(T2_D2_Obs_model_data_with_timestamps$season == s &
+                                                      T2_D2_Obs_model_data_with_timestamps$analysis_time == 1 & 
+                                                           T2_D2_Obs_model_data_with_timestamps$forecast_period == f ),]
+    
+# The function CalculateRH, calculate the relative humidity from the predicted T2 and D2 using th elinear models.
+    
+    results <- CalculateRH(df)
+    rmse.T2D2 <- rbind(rmse.T2D2, results$rmse.pred.by.model)
+    rmse.RH <- rbind(rmse.RH, results$rmse.RH.by.model)
+              
+    stn.season.atime.fperiod <-  c(station = station_id,
+                                   season = s,
+                                   atime = analysis_time,
+                                   fperiod = f
+                                   )
+     
+      
+      
+     
+      rmse.pred.station.season.atime.fperiod <- rbind(rmse.pred.station.season.atime.fperiod, c(stn.season.atime.fperiod, results$rmse.pred.by.model))                 
+      rmse.rh.station.season.atime.fperiod <- rbind(rmse.rh.station.season.atime.fperiod, c(stn.season.atime.fperiod, results$rmse.RH.by.model))
+              
+    
+  }
+}
+
+
+
+```
+### Results
+
+####Quartiles of T2 and D2
+
+```{r, warning=FALSE, message=F, echo=TRUE} 
+
+df.rmse.pred <- as.data.frame(rmse.pred.station.season.atime.fperiod)
+
+
+
+
+for (s in 1:4) { 
+    dfname <- paste("df_",s,sep ="")
+    assign(dfname, df.rmse.pred[which(df.rmse.pred$season == s),])
+}
+
+# Winter 
+summary(df_1[,5:12])
+
+# Spring
+summary(df_2[,5:12])
+
+# Summer
+summary(df_3[,5:12])
+
+# Autumn
+summary(df_4[,5:12])
+```
+
+
+```{r, warning=FALSE, message=F, echo=TRUE} 
+df.rmse.rh <-  as.data.frame(rmse.rh.station.season.atime.fperiod)
+for (s in 1:4) { 
+    dfname <- paste("df_",s,sep ="")
+    assign(dfname, df.rmse.rh[which(df.rmse.rh$season == s),])
+}
+
+# Winter 
+summary(df_1[,5:8])
+
+# Spring
+summary(df_2[,5:8])
+
+# Summer
+summary(df_3[,5:8])
+
+# Autumn
+summary(df_4[,5:8])
+
+
+```
+
+
+df_winter_pred_model <- df.rmse.pred[which(df.rmse.pred$season == 1),]
+df_winter_rh_model <- df.rmse.rh[which(df.rmse.rh$season == 1),]
+
+
+
+
+
+
+
+### Plots
+```{r, warning=FALSE, message=F, echo=TRUE} 
+
+require(ggplot2)
+require(reshape)
+
+df.rmse.pred <- as.data.frame(rmse.pred.station.season.atime.fperiod)
+df.rmse.rh <-  as.data.frame(rmse.rh.station.season.atime.fperiod)
+
+
+df_winter_pred_model <- df.rmse.pred[which(df.rmse.pred$season == 1),]
+df_winter_rh_model <- df.rmse.rh[which(df.rmse.rh$season == 1),]
+
+df_winter_T2_pred_model <- df_winter_pred_model[, c(4:8)]
+df_winter_D2_pred_model <- df_winter_pred_model[, c(4,9:12)]
+fperiod <- df_winter_T2_pred_model$fperiod
+
+
+molten <- melt(df_winter_T2_pred_model, id.vars = 'fperiod', variable_name = "model")
+ggplot(molten, aes(x=fperiod, y=value, colour = model )) + geom_line()+xlab("forecast period") + ylab("RMSE") + ggtitle("RMSE in T2 prediction with  linear regression models for the winter season")
+
+molten <- melt(df_winter_D2_pred_model, id.vars = 'fperiod', variable_name = "model")
+ggplot(molten, aes(x=fperiod, y=value, colour = model )) + geom_line()+xlab("forecast period") + ylab("RMSE") + ggtitle("RMSE in D2 prediction with  linear regression models for the winter season")
+
+df_winter_rh_model <- df_winter_rh_model[, c(4:8)]
+
+molten <- melt(df_winter_rh_model, id.vars = 'fperiod', variable_name = "model")
+ggplot(molten, aes(x=fperiod, y=value, colour = model )) + geom_line()+xlab("forecast period") + ylab("RMSE") + ggtitle("RMSE in RH with  linear regression models for the winter season")
+```
+
+### RMSE T2 in all seasons
+```{r, warning=FALSE, message=F, echo=TRUE} 
+
+df.rmse.pred.station.fperiod <- df.rmse.pred[,c(2, 4:8)]
+
+molten <- melt(df.rmse.pred.station.fperiod , id.vars = c("season", "fperiod"), variable_name = "model")
+ggplot(molten, aes(x= season, y=value, colour = model )) + geom_boxplot()+xlab("seasons(1:4)") + ylab("RMSE") + ggtitle("RMSE in T2 with  linear regression models for four seasons")
+```
+
+
+### RMSE D2 in all seasons
+```{r, warning=FALSE, message=F, echo=TRUE} 
+
+df.rmse.pred.station.fperiod <- df.rmse.pred[,c(2, 4,9:12)]
+
+molten <- melt(df.rmse.pred.station.fperiod , id.vars = c("season", "fperiod"), variable_name = "model")
+ggplot(molten, aes(x= season, y=value, colour = model )) + geom_boxplot()+xlab("seasons(1:4)") + ylab("RMSE") + ggtitle("RMSE in D2 with  linear regression models for four seasons")
+```
+
+### RMSE in all seasons
+```{r, warning=FALSE, message=F, echo=TRUE} 
+
+df.rmse.rh.station.fperiod <- df.rmse.rh[,c(2, 4:8)]
+
+molten <- melt(df.rmse.rh.station.fperiod , id.vars = c("season", "fperiod"), variable_name = "model")
+ggplot(molten, aes(x= season, y=value, colour = model )) + geom_boxplot()+xlab("seasons(1:4)") + ylab("RMSE") + ggtitle("RMSE in RH with  linear regression models for four seasons")
+```
+
+
+## Disussions
+
+## Conclusions and future directions
+
+Ackmowledgements

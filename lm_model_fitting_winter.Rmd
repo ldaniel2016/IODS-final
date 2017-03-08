@@ -1,0 +1,423 @@
+
+## Development of a linear regression model for weather data 
+
+In order to model T2 and D2 we use the linear regression model. Linear regression is the modelling tecnique in which we find a  linear realtionship between a scalar dependent variable, called response or predictand and one or more exploratory variables called predictors.
+
+Let us take a statistical dataset which consists of $(y, x_1, x_2, ...., x_n) $ where $y$ is the response or predictand variable and $ x_1, x_2, ...., x_n)$ are the predictors. We can find a linear relationship between the predictant and the predictors as 
+
+$ \hat{y} \,= \, \beta_1 x_1 + \beta2_x2 + \ldots + \beta_n x_n $, where $ \hat{y} is the approximation to the predictand $y$ 
+
+In linear regression model our aim is to find the $\beta$ variables so that the squared error, $ (y - \hat{y})^2 $ is minimum.
+
+In our assignment,  we find the relationship between T2Obs and the variables given as the output of the ECMWF numerical prediction model. A similar regression model for the D2Obs and the ECMWF outputs are also found.
+
+The weather data vary widely between the seasons and the ECMWF forecast model depends much on the forecast period.  But for the analysis purpose we  take only one  dataset for analysis, winter data for 1-day forecast period and summerdata for oneday forecast period. We predict T2 and D2 using our model on the data. In the later part of the assignment we use the model to predict T2 and D2 on the whole Kumpula weather station data for 4 seasons and 64 forecast periods.
+
+
+### Load the data for one-day forecast for the winter season 
+
+We load the data from the file "data/station2998_T2_D2_Obs_model_data_with_timestamps.csv" and select the data for one-day forecast for the winter season. We use the analysis period as 00:00 UTC. We then randomly split the data as training and test sets. The dataset is named as df_winter_00_08.
+
+```{r, warning=FALSE, message=F, echo=TRUE}
+# loading the data from the file 
+T2_D2_Obs_model_data_with_timestamps = read.table(file = "data/station2998_T2_D2_Obs_model_data_with_timestamps.csv", sep = ",", header = TRUE)
+df_winter_00_08 <- T2_D2_Obs_model_data_with_timestamps[which(T2_D2_Obs_model_data_with_timestamps$forecast_period == 8 & T2_D2_Obs_model_data_with_timestamps$analysis_time == 1 & T2_D2_Obs_model_data_with_timestamps$season == 1),]
+```
+
+
+#### Splitting the Training and testing data. 573 observations, train 430 and test 143
+
+```{r, warning=FALSE, message=F, echo=TRUE}
+# Splitting into train and test data
+  set.seed(123)
+  n <- nrow(df_winter_00_08)
+  train = sample(1:n, size = round(0.75*n), replace=FALSE)
+  T2_winter_00_08_train <- df_winter_00_08[train,6:(ncol(df_winter_00_08) - 1)]
+  T2_winter_00_08_test <-  df_winter_00_08[-train,6:(ncol(df_winter_00_08) - 1)] 
+  D2_winter_00_08_train <- cbind(df_winter_00_08[train,ncol(df_winter_00_08)],
+                                 df_winter_00_08[train,7:(ncol(df_winter_00_08) - 1)])
+  colnames(D2_winter_00_08_train)[1] <- "D2Obs"
+  D2_winter_00_08_test <- cbind(df_winter_00_08[-train,ncol(df_winter_00_08)],
+                                df_winter_00_08[-train,7:(ncol(df_winter_00_08) - 1)])
+  colnames(D2_winter_00_08_test)[1] <- "D2Obs"
+  
+  dim(T2_winter_00_08_train)
+  dim(T2_winter_00_08_test)
+  dim(D2_winter_00_08_train)
+  dim(D2_winter_00_08_test)
+```
+
+
+#### Correlation matrix 
+
+Here we find the correlation matrix for the variables of the dataset df_winter_00_08
+```{r, warning=FALSE, message=F, echo=TRUE}
+library(corrplot); library(dplyr)
+cor(as.matrix(df_winter_00_08[,6:ncol(df_winter_00_08)])) 
+
+```
+
+### Scatter plots of  the variables of the  dataset df_winter_00_08 with T2Obs 
+
+We can observe from the scatter plots that all "temperature variables" are linearly correlated with T2Obs. Please zoom the figure to see the details.
+
+```{r, warning=FALSE, message=F, echo=TRUE}
+library (ggplot2)
+par(mfrow=c(4,7)) 
+for (i in 7:31) {
+  plot(df_winter_00_08[,i],df_winter_00_08[,6], ylab = "T2Obs", xlab = colnames(df_winter_00_08[i]))
+}
+
+```
+
+
+#### First linear regression model for  T2Obs
+
+We use the correlation matrix and the scatter plots to find out the predictor variables for our model. For our first model, we take all the variables which have a positive correlation higher than 0.8 with T2Obs and all the variables which are negatively correlated with T2Obs. 
+
+All the "temperature variables" are linearly correlated with T2Obs but some have correlation coefficients less thna 0.8. We takeall the temperature variables  that have higher correlation coefficients than 0.8 with T2Obs. So we use the temperature variables T2, T_950, T_925, and SKT in our model. D2 and D2_M1 are also have  high correlation coefficent with T2Obs and are  linearly distributed with T2Obs, we include D2 in our model. 
+
+Even though the  RH variables are seen to be randomly distributed with T2Obs, they have correlations less  than 0.8 and we exclude them from  our model.  Even though DECLINATION is  linearly correlated with T2Obs, its  correlation coefficient is less than 0.5, we exclude it  from our model. In the case of TP, it is not linearly correlated with T2Obs and has very small correlation coefficient, we exclude it from the model.
+
+From the scatter plots, we can see that the cloud cover varables LCC, MCC and HCC  are randomly correlated with T2Obs and have low correlation coefficients with T2Obs. As LCC has a negative correlation with T2Obs, we take LCC to our list of predictors. As MSL also has a negative correlation coefficent, we also include it to our list of  predictors. The wind velocity variables,  U10 and V10 are randomly distributed and have low correlation coefficients we exclude them from our model.
+
+Based on the above hypothesis, the formula for our initial model is
+** T2Obs ~ T2 + D2 + T_950 + T_925 + T2_M1 + T_950_M1 + T_925_M1 + D2_M1 + SKT + LCC + MSL **
+
+We use the R function "lm" to carryout the linear regression model.
+
+The summary of our first model, my_model1_T2 shows that it has a Residual standard error: 1.428. F-statistic: 506.9 and the p-value: < 2.2e-16.
+The p-value shows the probability that the null hypothesis is true. If the null hypothesis is true, it is an intercept only model and there is no linear relationship between the predictand and the predictors. In our case as the p value,  is very small, the nul hypothesis is false and there is a linear relationship between the predictand and the predictors. T
+
+The Fischer value or F-statistic  is the ratio of explained variance and unexplained variance and has a value near 1 if the null hypothesis is true.
+F-statistic is defined as  F-statistic = MSM (Mean of Squares for Model) / MSE (Mean of Squares for Error) . In our case F-statistic is 506.9, so our model rejects the null hypothesis.
+ 
+ The t value is the value of the t-statistic for testing whether the corresponding regression coefficient is different from 0. As a rule of thump, a t value around or greater than 2 is good.
+ 
+ Pr. value  is the p-value for the hypothesis test for which the t value is the test statistic. It gives  the probability of a test statistic at least as the t  value obtained, if the null hypothesis were true.  A low Pr value for the variables shows that there iis linear relationship between this variable and the predictor.
+ The Signif codes actually shows the ordering based on p values, a lower  p value, higher is the significance.
+ 
+ Based on the F-statistic and p value we see that our model is a good one.
+
+```{r, warning=FALSE, message=F, echo=TRUE} 
+my.model1.T2 <- lm(T2Obs  ~ T2 + D2 + T_950 + T_925 + T2_M1 + T_950_M1 + T_925_M1 + D2_M1 + SKT + LCC + MSL , data = T2_winter_00_08_train)
+summary(my.model1.T2)
+
+```
+
+
+#### Second  linear regression model for  T2Obs
+
+We try in this step to see whether we can improve our first model. Based on the t value and Pr value  for the variables obtained in our first model, we include the variables which have Pr value less than 0.5.  This results in a new formula for the linear regression as 
+
+** T2Obs ~ T2 + D2 + T_950 + T_925 + T2_M1 + D2_M1 + SKT + LCC ** 
+
+The summary of the model shows that F-statistic has increased from 506 to 698. The p value remains as the same low value, the residual standard error has almost same (1.428 for the first model and 1.426 for the second model)  
+
+
+```{r, warning=FALSE, message=F, echo=TRUE} 
+my.model2.T2 <- lm(T2Obs  ~ T2 + D2 + T_950 + T_925 + T2_M1 + D2_M1 + SKT + LCC , data = T2_winter_00_08_train)
+summary(my.model2.T2)
+
+```
+
+#### Third   linear regression model for  T2Obs
+
+We try to see if we can improve the model still further. Based on the t value and Pr value  for the variables obtained in our second  model, we include only the variables which have Pr value less than 0.1.  This results in a new formula for the linear regression as 
+
+** T2Obs ~ T2 + D2 + T_950 + T2_M1 +  LCC ** 
+
+The summary of the model shows that F-statistic has increased and has a value 1114. The p value remains as the same low value, the residual standard error is the same as the first model.  
+
+
+```{r, warning=FALSE, message=F, echo=TRUE} 
+my.model3.T2 <- lm(T2Obs  ~ T2 + D2 + T_950 + T2_M1 +  LCC  , data = T2_winter_00_08_train)
+summary(my.model3.T2)
+
+```
+
+
+### The selected linear model for T2Obs
+
+From the above analysis we saw that we do not gain much in terms of residual error and p value when we move from model 1 to model 3.
+Our analysis is based only on the winter data, we cannot strongly state that the  five variables for the third model are the only ones that significantly affect T2. As a compromise  we select the second model with eight variables, which has a higher F value than the first model.
+The linear regression formula for our model is taken as 
+
+** T2Obs ~ T2 + D2 + T_950 + T_925 + T2_M1 + D2_M1 + SKT + LCC ** 
+
+
+```{r, warning=FALSE, message=F, echo=TRUE} 
+my.model.T2 <- lm(T2Obs  ~ T2 + D2 + T_950 + T_925 + T2_M1 + D2_M1 + SKT + LCC , data = T2_winter_00_08_train)
+summary(my.model.T2)
+
+```
+### Predicting T2 with the lm  model
+
+We now see the predicting ability of our model by using it to predict T2 for the test data T2_winter_00_08_test.
+The results show that the root mean square error (rmse) is 1.426. 
+Our linear regression model for T2 is 
+T2  =  9.07883695 + 0.26398396 T2 (of the ECMWF model) + 0.45513159 D2 (of the ECMWF model) + 0.18812205 T_950  - 0.07796135 T_925 + 0.30452258  T2_M1  - 0.11617459 D2_M1 - 0.04322546 SKT - 1.35912603 LCC
+
+
+```{r, warning=FALSE, message=F, echo=TRUE} 
+# calculating the fit
+  fitted.values <- predict(object = my.model.T2, newdata <- T2_winter_00_08_test)
+  T2pred.lm <- fitted.values
+  
+  fitted.values <- as.numeric(fitted.values)
+  residuals <- as.numeric(T2_winter_00_08_test[,1] - fitted.values)
+  coefficients <- my.model.T2$coefficients
+  rmse.mymodel.T2 <- sqrt(mean(residuals^2))
+  coefficients
+  rmse.mymodel.T2 
+```
+
+## Modelling D2 with lm  the winter data 
+  
+### Scatter plots of  the variables of the  dataset df_winter_00_08 with D2Obs 
+
+We can observe from the scatter plots that all "temperature variables" are linearly correlated with D2Obs. Please zoom the figure to see the details.
+
+```{r, warning=FALSE, message=F, echo=TRUE}
+library (ggplot2)
+par(mfrow=c(4,7)) 
+for (i in 7:31) {
+  plot(df_winter_00_08[,i],df_winter_00_08[,32], ylab = "D2Obs", xlab = colnames(df_winter_00_08[i]))
+}
+
+```  
+  
+```{r, warning=FALSE, message=F, echo=TRUE} 
+lm.model.D2 <- lm(D2Obs ~., data = D2_winter_00_08_train)
+summary(lm.model.D2)
+
+```
+
+### Predicting D2 with the lm  model
+```{r, warning=FALSE, message=F, echo=TRUE} 
+# calculating the fit
+  fitted.values <- predict(object = lm.model.D2, newdata <- D2_winter_00_08_test)
+  D2pred.lm <- fitted.values
+  
+  fitted.values <- as.numeric(fitted.values)
+  residuals <- as.numeric(D2_winter_00_08_test[,1] - fitted.values)
+  coefficients <- lm.model.D2$coefficients
+  rmse.lm.D2 <- sqrt(mean(residuals^2))
+  
+```
+
+
+# Modelling with lmstep
+
+```{r, warning=FALSE, message=F, echo=TRUE} 
+ # generating the linear models
+  response <- colnames(T2_winter_00_08_train)[1]
+  object.formula <- as.formula(paste(response, " ~ 1", sep = ""))
+  upper.formula <- as.formula(paste(response, " ~ .", sep = ""))
+  lower.formula <- as.formula(paste(response, " ~ 1", sep = ""))
+  object.lm <- lm(object.formula, data = T2_winter_00_08_train)
+  upper.lm <- lm(upper.formula, data = T2_winter_00_08_train)
+  lower.lm <- lm(lower.formula, data = T2_winter_00_08_train)
+  direction <- "forward"
+  steps <-  1000
+  # choosing the best model
+  step.model.T2 <- step(object = object.lm,
+                     scope = list(upper = upper.lm, lower = lower.lm),
+                     direction = direction, trace = 0 , steps = steps)
+  step.model.T2
+  summary(step.model.T2)
+  
+```
+
+
+### Predicting T2 with the lm step model
+```{r, warning=FALSE, message=F, echo=TRUE} 
+# calculating the fit
+  fitted.values <- predict(object = step.model.T2, newdata <- T2_winter_00_08_test)
+  T2pred.lmstep <- fitted.values
+  
+  fitted.values <- as.numeric(fitted.values)
+  residuals <- as.numeric(T2_winter_00_08_test[,1] - fitted.values)
+  coefficients <- step.model.T2$coefficients
+  rmse.lmstep.T2 <- sqrt(mean(residuals^2))
+```
+
+### Modelling D2 with the lm step model
+
+```{r, warning=FALSE, message=F, echo=TRUE} 
+ # generating the linear models
+  response <- colnames(D2_winter_00_08_train)[1]
+  object.formula <- as.formula(paste(response, " ~ 1", sep = ""))
+  upper.formula <- as.formula(paste(response, " ~ .", sep = ""))
+  lower.formula <- as.formula(paste(response, " ~ 1", sep = ""))
+  object.lm <- lm(object.formula, data = D2_winter_00_08_train)
+  upper.lm <- lm(upper.formula, data = D2_winter_00_08_train)
+  lower.lm <- lm(lower.formula, data = D2_winter_00_08_train)
+  direction <- "forward"
+  steps <-  1000
+  # choosing the best model
+  step.model.D2 <- step(object = object.lm,
+                     scope = list(upper = upper.lm, lower = lower.lm),
+                     direction = direction, trace = 0 , steps = steps)
+ summary(step.model.D2) 
+```
+
+### Predicting D2 with the lm step model
+```{r, warning=FALSE, message=F, echo=TRUE} 
+# calculating the fit
+  fitted.values <- predict(object = step.model.D2, newdata <- D2_winter_00_08_test)
+  D2pred.lmstep <- fitted.values
+  
+  fitted.values <- as.numeric(fitted.values)
+  residuals <- as.numeric(D2_winter_00_08_test[,1] - fitted.values)
+  coefficients <- step.model.D2$coefficients
+  rmse.lmstep.D2 <- sqrt(mean(residuals^2))
+  
+```
+
+
+
+#### Modelling with glm function and cross validation cv.glm function
+
+
+```{r, warning=FALSE, message=F, echo=TRUE} 
+library(boot)
+set.seed(123)
+cv.error.10 = rep(0, 10)
+for (i in 1:10) {
+    glm.fit.T2 = glm(T2Obs ~., data = T2_winter_00_08_train)
+    cv.error.10[i] = cv.glm(T2_winter_00_08_train, glm.fit.T2, K = 5)$delta[1]
+cv.error.10
+}
+summary(glm.fit.T2)
+
+
+```
+
+
+
+### Predicting T2 with the glm model
+```{r, warning=FALSE, message=F, echo=TRUE} 
+# calculating the fit
+  fitted.values <- predict(object = glm.fit.T2, newdata <- T2_winter_00_08_test)
+  T2pred.glmcv <- fitted.values
+  fitted.values <- as.numeric(fitted.values)
+  residuals <- as.numeric(T2_winter_00_08_test[,1] - fitted.values)
+  coefficients <- glm.fit.T2$coefficients
+  rmse.glmcv.T2 <- sqrt(mean(residuals^2))
+```
+
+
+
+# D2 model boot library to use cv.glm function
+```{r, warning=FALSE, message=F, echo=TRUE} 
+library(boot)
+set.seed(123)
+cv.error.10 = rep(0, 10)
+for (i in 1:10) {
+    glm.fit.D2 = glm(D2Obs ~., data = D2_winter_00_08_train)
+    cv.error.10[i] = cv.glm(D2_winter_00_08_train, glm.fit.D2, K = 5)$delta[1]
+cv.error.10
+}
+summary(glm.fit.D2)
+
+```
+
+## Predicting D2
+```{r, warning=FALSE, message=F, echo=TRUE} 
+# calculating the fit
+  fitted.values <- predict(object = glm.fit.D2, newdata <- D2_winter_00_08_test)
+   D2pred.glmcv <- fitted.values
+  fitted.values <- as.numeric(fitted.values)
+  residuals <- as.numeric(D2_winter_00_08_test[,1] - fitted.values)
+  coefficients <- glm.fit.D2$coefficients
+  rmse.glmcv.D2 <- sqrt(mean(residuals^2))
+```
+
+
+# rmse values for lm, lmstep and glmcv predictions
+
+```{r, warning=FALSE, message=F, echo=TRUE} 
+
+ cat("rmse lm T2=", rmse.lm.T2, "rmse lmstep T2=", rmse.lmstep.T2, "rmse glmcv T2=", rmse.glmcv.T2,
+     "rmse lm D2=", rmse.lm.D2,"rmse lmstep D2=", rmse.lmstep.D2, "rmse glmcv D2=", rmse.glmcv.D2
+ )
+```
+
+# Plots
+
+```{r, warning=FALSE, message=F, echo=TRUE} 
+# We plot the graphs  Residuals vs Fitted values, Normal QQ-plot and Residuals vs Leverage.
+par(mfrow = c(2,2))
+plot(step.model.T2, which = c(1,2,5), caption = list("T2-lm  Residuals vs Fitted values", "T2-lm Normal QQ-plot", "T2-lm Residuals vs Leverage"))
+
+par(mfrow = c(2,2))
+plot(step.model.D2, which = c(1,2,5), caption = list("D2-lm Residuals vs Fitted values", "D2-lm Normal QQ-plot", "D2-lm Residuals vs Leverage"))
+
+par(mfrow = c(2,2))
+plot(glm.fit.T2, which = c(1,2,5), caption = list("T2-glm Residuals vs Fitted values", "T2-glm Normal QQ-plot", "T2-glm Residuals vs Leverage"))
+
+par(mfrow = c(2,2))
+plot(glm.fit.D2, which = c(1,2,5), caption = list("D2-glm Residuals vs Fitted values", "D2-glm Normal QQ-plot", "D2-glm Residuals vs Leverage"))
+
+
+
+```
+## RH predictions
+
+```{r, warning=FALSE, message=F, echo=TRUE} 
+
+  T2Obs.test <- T2_winter_00_08_test[,1]
+  D2Obs.test <- D2_winter_00_08_test[,1]
+  
+  
+  T2model.test <- T2_winter_00_08_test[,3]
+  D2model.test <- D2_winter_00_08_test[,4]
+  
+ # RH calculation
+  
+  saturation_humidity_obs <-  6.112*exp((17.62*T2Obs.test)/(T2Obs.test + 243.12))
+  specific_humidity_obs <-  6.112*exp((17.62*D2Obs.test)/(D2Obs.test + 243.12))
+  RHObs <- 100*(specific_humidity_obs/saturation_humidity_obs)
+  
+  
+  saturation_humidity_model <-  6.112*exp((17.62*T2model.test)/(T2Obs.test + 243.12))
+  specific_humidity_model <-  6.112*exp((17.62*D2model.test)/(D2Obs.test + 243.12))
+  RHmodel <- 100*(specific_humidity_model/saturation_humidity_model)
+``` 
+
+### T2 and D2 predicted using lm
+  
+```{r, warning=FALSE, message=F, echo=TRUE} 
+  saturation_humidity_pred_lm <-  6.112*exp((17.62*T2pred.lm)/(T2pred.lm + 243.12))
+  specific_humidity_pred_lm <-  6.112*exp((17.62*D2pred.lm)/(D2pred.lm + 243.12))
+  RHpred.lm <- 100*(specific_humidity_pred_lm/saturation_humidity_pred_lm)
+
+  # T2 and D2 predicted using lmstep 
+  saturation_humidity_pred_lmstep <-  6.112*exp((17.62*T2pred.lmstep)/(T2pred.lmstep + 243.12))
+  specific_humidity_pred_lmstep <-  6.112*exp((17.62*D2pred.lmstep)/(D2pred.lmstep + 243.12))
+  RHpred.lmstep <- 100*(specific_humidity_pred_lmstep/saturation_humidity_pred_lmstep)
+
+   # T2 and D2 predicted using glm cross validation 
+  saturation_humidity_pred_glmcv <-  6.112*exp((17.62*T2pred.glmcv)/(T2pred.glmcv + 243.12))
+  specific_humidity_pred_glmcv <-  6.112*exp((17.62*D2pred.glmcv)/(D2pred.glmcv + 243.12))
+  RHpred.glmcv <- 100*(specific_humidity_pred_lmstep/saturation_humidity_pred_glmcv)
+    
+```
+ 
+### T2 and D2 predicted using lm
+  
+```{r, warning=FALSE, message=F, echo=TRUE} 
+  rmse.RH.model <- sqrt(mean((RHmodel - RHObs)^2))
+  rmse.RH.lm <- sqrt(mean((RHpred.lm - RHObs)^2))
+  rmse.RH.lmstep <- sqrt(mean((RHpred.lmstep - RHObs)^2))
+  rmse.RH.glmcv <- sqrt(mean((RHpred.glmcv - RHObs)^2))
+
+  
+```
+
+```{r, warning=FALSE, message=F, echo=TRUE} 
+
+ cat("rmse RH model =", rmse.RH.model, "rmse RM lm=", rmse.RH.lm, "rmse RH lmstep =", rmse.RH.lmstep, "rmse RH glmcv =", rmse.RH.glmcv)
+
+```

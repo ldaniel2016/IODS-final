@@ -1,5 +1,5 @@
 ---
-title: "IODS final assignment"
+title: "IODS final assignment: Interdependance of variables in weather data"
 author: "Laila Daniel"
 email: laila.daniel@cs.helsinki.fi
 date: "February 27, 2017"
@@ -9,6 +9,28 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+***
+  
+```{r child = "introduction.Rmd"}
+```
+
+***
+  
+```{r child = "weatherdata.Rmd"}
+```
+  
+***
+
+  
+```{r child = "lm_model_fitting_winter.Rmd"}
+```
+  
+***
+  
+```{r child = "RH_lm_model_fittling_kumpula_all.Rmd"}
+```
+  
+***
 
 ## Research problem 
 

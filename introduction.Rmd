@@ -1,0 +1,30 @@
+#  Assignment problem: 
+###The interdependance of T2 (surface temperature at 2 meters) and D2 (dewpoint temperature at 2 meters)
+
+## Abstract
+
+## Research question
+
+Statistical postprocessing is a method to improve the direct model output from numerical weather prediction models. It enhances the NWP's ability to forecast by relating the model output to observational or additional model data using statistical methods. It incorporates the local observations to the model output to reduce the systematic biases of the model.
+
+Model Output Statistics (MOS) is a type of statisitical post-processing technique.  MOS was defined by [Glahn and Lowry](http://journals.ametsoc.org/doi/pdf/10.1175/1520-0450%281972%29011%3C1203%3ATUOMOS%3E2.0.CO%3B2) in 1972 as the following: 
+Model Output Statistics is an objective weather forecasting technique which consisists of determining a statistical relationship between a predictand and variables forecast by a numerical model at some projection time(s). It is, in effect, the determination of the "weather related" statistics of a numerical model. 
+
+The Finnish Meteorological Institute (FMI) has started a project called POSSE that aims  to improve the accuracy of weather forecasts by incorporating the raw forecasts and local observations  with statistical models. In POSSE, the  methodology for statistical post-processing of weather forecasts is the MOS and it  consists of determining a statistical relationship between the response variable, for example, the  observed temperature, and the predictor variables such as  mean sea level pressure,high cloud cover etc. The vision of POSSE is to enable FMI to produce cost-efficient, reliable, and competitive forecasts in Finland and around the world.
+
+In the POSSE project, work has already been done in improving the forecasts by incorporating the observed temperature at 2 meters with the numerical weather model obtained from [ECMWF](www.ecmwf.int) (European Centre for Medium-Range Weather Forecasts). This assignment problem is a part of my work in the POSSE project where we analyse the interdependance of variables of the forecast model. 
+ 
+Specifically in this assignment, we carry out the interdependance of T2, the air temperature at 2 meters, and D2, the dewpoint temperature at 2 meters.  
+
+Dewpoint temperature  indicates the amount moisture in the air. A high dewpoint indicate a higher moisture content of the air at a given temperature. The dewpoint temperature is defined as the the temperature at which the air cannot hold all the water vapour which is mixed with it and it has to condense some water vapour. The dew point temperature is always lower than or equal to the air temperature.
+
+Relative humidity (RH) indicates how moist the air is. The air has high high relative humidity, when the air temperature and the dew point temperatures are very close.  When there is a large difference between air and dew point temperatures the air has a low  relaitve humidity.
+The dew point is associated with relative humidity. A high relative humidity indicates that the dew point is closer to the current air temperature. Relative humidity of 100% indicates the dew point is equal to the current air temperature and that the air is maximally saturated with water. When the dew point remains constant and temperature increases, relative humidity decreases.
+
+We have the ECMWF model outputs on T2, D2 and also the observed temperature and dewpoint temperature at 2 meters,  T2Obs and D2Obs respectively. We develop a linear regression model with response variable T2Obs and the model forecast from ECMWF and predict T2.  Similar linear regression is carried out with response variable  D2Obs and the model forecast from ECMWF to predict D2.  We then calculate the Relative Humidity (RH) which is a function of T2 and D2.
+
+In this assignment we use simple linear regression(lm), linear regression with step method and linear regression with cross validation (glm.cv). 
+
+The results show that statistical postprocessing with MOS methodoly where we use linear regression improves the forecast model.
+
+## Contributions
