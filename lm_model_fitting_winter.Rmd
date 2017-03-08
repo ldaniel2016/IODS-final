@@ -194,7 +194,7 @@ T2  =  9.07883695 + 0.26398396 * T2 (of the ECMWF model) + 0.45513159 * D2 (of t
 ```{r, warning=FALSE, message=F, echo=TRUE} 
 # calculating the fit
   fitted.values <- predict(object = my.model.T2, newdata <- T2_winter_00_08_test)
-  T2pred.lm <- fitted.values
+  T2pred.mymodel <- fitted.values
   
   fitted.values <- as.numeric(fitted.values)
   residuals <- as.numeric(T2_winter_00_08_test[,1] - fitted.values)
@@ -322,7 +322,7 @@ T2  =  2.472731 - 0.063511 *  T2 (of the ECMWF model) + 0.564682 * D2 (of the EC
 ```{r, warning=FALSE, message=F, echo=TRUE} 
 # calculating the fit
   fitted.values <- predict(object = my.model.D2, newdata <- D2_winter_00_08_test)
-  D2pred.lm <- fitted.values
+  D2pred.mymodel <- fitted.values
   
   fitted.values <- as.numeric(fitted.values)
   residuals <- as.numeric(D2_winter_00_08_test[,1] - fitted.values)
@@ -586,19 +586,20 @@ We can see that my.model for T2 and D2 have comparable rmse values to that obtai
  )
 ```
 
-## The diagnostic plots  Residuals vs Fitted values, Normal QQ-plot and Residuals vs Leverage for the models 
+## The diagnostic plots  
 
-We plot the following graphs Residuals vs Fitted values, Normal QQ-plot and Residuals vs Leverage for all the models.
+We plot the following graphs Residuals vs Fitted values, Normal QQ-plot, Standardized residuals vs Fitted values and Residuals vs Leverage for all the models.
 
 The Residuals vs Fitted values  plot shows if the residuals have non-linear patterns. There could be a non-linear relationship between predictor variables and the response variable and the pattern could show up in this plot if the model is not able to  capture the non-linear relationship. Ideally there should not be any pattern and the residuals should be randomly spread around a horizontal line drawn at 0 on the y-axis. A red line in the graph helps to show the trend in the pattern, its deviation from the horizontal line at 0.
 
 The second graph, the normal QQ-plot shows if the residuals are normally distributed. If the residuals follow the  straight dashed line, the residuals are normally distributed.
 
-The third graph, Residuals vs Leverage graph helps to find the influential extreme values or outliers. The  data have extreme values,  but we can consider these extreme values are not influential if the linear  regression model we find does not change if we either include or exclude them from analysis. 
+
+The third graph, Standardized residuals vs Fitted values, shows the rmse in th epredictions.
+The third graph, Residuals vs Leverage graph helps to find the influential extreme values or outliers. The  data have extreme values,  but we can consider these extreme values are not influential if the linear  regression model we find does not change if we either include or exclude them from analysis. The red dotted line in the graph shows the Cook's distance. If all the points in the levrage graph are well within the the Cook's distance, then there are no outliers that influence the linear regression. 
 
 
-The plots show the Residuals vs Fitted values, Normal QQ-plot and Residuals vs Leverage.
-The Residuals vs Fitted values shows most of the residuals are along the mean value. The normal qq plot is linear and the leverage plot do not have outliers. These graphs show that the model is  a good fit
+We plot the diagnostic plots for our linear regression models, mymodel, lm, lmstep and glmcv. For mymodel, the Residuals vs Fitted values shows most of the residuals are along the mean value. The normal QQ plot is linear and the leverage plot do not have outliers. These graphs show that the mymodel is  a good fit for the weather data. Similar graphs for lm, lmstep and glmcv show that they also produce good linear regression models for the weather data.
 
 
 
@@ -606,7 +607,7 @@ The Residuals vs Fitted values shows most of the residuals are along the mean va
 # We plot the graphs  Residuals vs Fitted values, Normal QQ-plot and Residuals vs Leverage.
 
 par(mfrow = c(2,2))
-plot(my.model.T2, which = c(1,2,5), caption = list("T2-my model  Residuals vs Fitted values", "T2-mymodel Normal QQ-plot", "T2-mymodel Residuals vs Leverage"))
+plot(my.model.T2, which = c(1,2,3,5), caption = list("T2-my model  Residuals vs Fitted values", "T2-mymodel Normal QQ-plot", "T2 Standardized residuals vs Fitted values", "T2-mymodel Residuals vs Leverage"))
 
 par(mfrow = c(2,2))
 plot(my.model.D2, which = c(1,2,5), caption = list("D2-my model Residuals vs Fitted values", "D2-lm Normal QQ-plot", "D2-mymodel Residuals vs Leverage"))
@@ -636,6 +637,10 @@ plot(glm.fit.D2, which = c(1,2,5), caption = list("D2-glm Residuals vs Fitted va
 ```
 ## RH predictions
 
+The aim of my assignment was to find the interdependance of the variables T2 and D2. We find this by calculting the Relative humidity which is a function of T2 and D2.
+
+In this section, we calculate the RH values using the T2Obs, D2Obs,   T2 and D2 from the ECMWF model and T2 and D2 obtained from the linear regression models mymodel, lm, lmstep and glmcv
+
 ```{r, warning=FALSE, message=F, echo=TRUE} 
 
   T2Obs.test <- T2_winter_00_08_test[,1]
@@ -646,49 +651,64 @@ plot(glm.fit.D2, which = c(1,2,5), caption = list("D2-glm Residuals vs Fitted va
   D2model.test <- D2_winter_00_08_test[,4]
   
  # RH calculation
+
+  # RH  from T2Obs and D2Obs
   
   saturation_humidity_obs <-  6.112*exp((17.62*T2Obs.test)/(T2Obs.test + 243.12))
   specific_humidity_obs <-  6.112*exp((17.62*D2Obs.test)/(D2Obs.test + 243.12))
   RHObs <- 100*(specific_humidity_obs/saturation_humidity_obs)
   
+  # RH  from T2 and D2 from ECMWF model
   
   saturation_humidity_model <-  6.112*exp((17.62*T2model.test)/(T2Obs.test + 243.12))
   specific_humidity_model <-  6.112*exp((17.62*D2model.test)/(D2Obs.test + 243.12))
   RHmodel <- 100*(specific_humidity_model/saturation_humidity_model)
 ``` 
 
-### T2 and D2 predicted using lm
+### T2 and D2 predicted using mymodel, lm, lmstep and glmcv
   
 ```{r, warning=FALSE, message=F, echo=TRUE} 
+
+ # T2 and D2 predicted using mymodel
+
+  saturation_humidity_pred_mymodel <-  6.112*exp((17.62*T2pred.mymodel)/(T2pred.mymodel + 243.12))
+  specific_humidity_pred_mymodel <-  6.112*exp((17.62*D2pred.mymodel)/(D2pred.mymodel + 243.12))
+  RHpred.mymodel <- 100*(specific_humidity_pred_mymodel/saturation_humidity_pred_mymodel)
+
+  # T2 and D2 predicted using lm
+  
   saturation_humidity_pred_lm <-  6.112*exp((17.62*T2pred.lm)/(T2pred.lm + 243.12))
   specific_humidity_pred_lm <-  6.112*exp((17.62*D2pred.lm)/(D2pred.lm + 243.12))
   RHpred.lm <- 100*(specific_humidity_pred_lm/saturation_humidity_pred_lm)
 
   # T2 and D2 predicted using lmstep 
+  
   saturation_humidity_pred_lmstep <-  6.112*exp((17.62*T2pred.lmstep)/(T2pred.lmstep + 243.12))
   specific_humidity_pred_lmstep <-  6.112*exp((17.62*D2pred.lmstep)/(D2pred.lmstep + 243.12))
   RHpred.lmstep <- 100*(specific_humidity_pred_lmstep/saturation_humidity_pred_lmstep)
 
    # T2 and D2 predicted using glm cross validation 
+  
   saturation_humidity_pred_glmcv <-  6.112*exp((17.62*T2pred.glmcv)/(T2pred.glmcv + 243.12))
   specific_humidity_pred_glmcv <-  6.112*exp((17.62*D2pred.glmcv)/(D2pred.glmcv + 243.12))
   RHpred.glmcv <- 100*(specific_humidity_pred_lmstep/saturation_humidity_pred_glmcv)
     
 ```
  
-### T2 and D2 predicted using lm
+### The rmse in the RH value calulated using the T2 and D2 observations and model values
+
+We get the following rmse values for the different models
+rmse RH ECMWF model =  4.823471 rmse RM mymodel =  2.000381 rmse RM lm =  2.029639 rmse RH lmstep =  1.980861 rmse RH glmcv =  1.983662.
+
+We can see that the ECMWF model has high rmse in RH value compared to all other models. The model we developed "mymodel" has comparable rmse values for RH than that of lm, lmstep and glmcv models. 
   
 ```{r, warning=FALSE, message=F, echo=TRUE} 
   rmse.RH.model <- sqrt(mean((RHmodel - RHObs)^2))
+  rmse.RH.mymodel <- sqrt(mean((RHpred.mymodel - RHObs)^2))
   rmse.RH.lm <- sqrt(mean((RHpred.lm - RHObs)^2))
   rmse.RH.lmstep <- sqrt(mean((RHpred.lmstep - RHObs)^2))
   rmse.RH.glmcv <- sqrt(mean((RHpred.glmcv - RHObs)^2))
-
+  cat("rmse RH ECMWF model = ", rmse.RH.model, "rmse RM mymodel = ", rmse.RH.mymodel, "rmse RM lm = ", rmse.RH.lm, "rmse RH lmstep = ", rmse.RH.lmstep, "rmse RH glmcv = ", rmse.RH.glmcv)
   
 ```
 
-```{r, warning=FALSE, message=F, echo=TRUE} 
-
- cat("rmse RH model =", rmse.RH.model, "rmse RM lm=", rmse.RH.lm, "rmse RH lmstep =", rmse.RH.lmstep, "rmse RH glmcv =", rmse.RH.glmcv)
-
-```
