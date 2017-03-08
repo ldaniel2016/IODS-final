@@ -3,8 +3,8 @@ This section is divided into (1) model prediction and (2) analysis and results.
 We predict the linear regression model for the Kumpula station for the four seasons and for the 64 forecast
 periods. For ease of analysis we use only the forecasts that are at 00:00 UTC (analysis_time is 1). We use the simple linear regression(lm), linear regression with step method and linear regression with cross validation (glm.cv).
 
-The linear regression model takes two response variables namely T2Obs and D2Obs, the observations of air temperature and dewpoint temperature at 2 meters. As the predictors we use the ECMWF model outputs. All these variables are explained in the Section on weather data. Using the linear regression model, we predict the
-T2 and D2, the air temperature and dewpoint temperature for 64 forecast periods. We then calculate the relative humidity, RH, using the predicted T2 and D2 using the three linear regression models. We also calculate the RH using the T2 and D2 from the ECMWF raw model. The relative humidity is calculated using some standard formulas.
+The linear regression model takes two response variables namely T2Obs and D2Obs, the observations of air temperature and dewpoint temperature at 2 meters. As the predictors we use the ECMWF model outputs. All these variables are explained in the Section on weather data. Using the linear regression models, mymodel, lm, lmstep and glmcv, we predict the
+T2 and D2, the air temperature and dewpoint temperature for 64 forecast periods. We then calculate the relative humidity, RH, using the predicted T2 and D2 using the four  linear regression models. We also calculate the RH using the T2 and D2 from the ECMWF raw model. The relative humidity is calculated using some standard formulas.
 
 The R program is done in a modularised way with functions.
 
@@ -17,6 +17,47 @@ library(reshape2)
 
 # glm and glm.cv
 library(boot)
+
+FitWithmymodel <- function(training.set, test.set = NULL, parameter) {
+  # Estimates a  linear model using "mymodel" we developed and predicts with the model.
+  #
+  # Args:
+  #   training.set:
+  #   test.set:
+  #   parameter shows whether we want to model for T2 or D2.
+  #   introducing the parameter is a simple way to select the formula that is to be 
+  #   used for T2 and D2
+  #
+  # Returns:
+  #   A list of coefficients, residuals and fitted values.
+  
+  response <- colnames(training.set)[1]
+  if (parameter == 1) { 
+    model <- lm(T2Obs ~ T2 + D2 + T_950 + T_925 + T2_M1 + D2_M1 + SKT + LCC, data = training.set )
+  }
+  else if (parameter == 2) {
+   model <- lm(D2Obs ~ T2 + D2 + T_950 + T_950_M1 + D2_M1 + TP + RH_950 + V10 + LCC, data = training.set)
+  }
+  
+  
+  if (is.null(test.set)) {
+    test.set <- training.set
+  }
+  
+  fitted.values <- predict(object = model, newdata = test.set)
+  residuals <- test.set[,1] - fitted.values
+  
+  fitted.values <- as.numeric(fitted.values)
+  residuals <- as.numeric(residuals)
+  
+  results <- list("coefficients" = model$coefficients,
+                  "residuals" = residuals,
+                  "fitted.values" = fitted.values)
+  
+  class(results) <- "simplelm"
+  
+  return(results)
+}
 
 FitWithLM <- function(training.set, test.set = NULL) {
   # Estimates a full linear model and predicts with the model.
@@ -148,7 +189,7 @@ FitWithglmcv<- function(training.set, test.set = NULL, k) {
 }
 
 
-ModelsOfAlgorithms <- function(training.set, test.set) {
+ModelsOfAlgorithms <- function(training.set, test.set, parameter) {
   # Models generated using different algorithms, currently with lm, lmstep and glmcv
   # 
   #
@@ -172,6 +213,19 @@ ModelsOfAlgorithms <- function(training.set, test.set) {
  
   elapsed.time.by.algorithm <- NULL
  
+   # mymodel
+    tmp.time.result <- system.time(
+    tmp.result <- FitWithmymodel(
+                    training.set, test.set, parameter
+                  )
+  )
+  
+  fitted.values.by.algorithm$mymodel <- tmp.result$fitted.values
+  residuals.by.algorithm$mymodel  <- tmp.result$residuals
+  elapsed.time.by.algorithm <- c(elapsed.time.by.algorithm,
+                                mymodel = tmp.time.result[[3]])
+  
+  
   
   # lm 
   tmp.time.result <- system.time(
@@ -182,7 +236,7 @@ ModelsOfAlgorithms <- function(training.set, test.set) {
   
   fitted.values.by.algorithm$lm <- tmp.result$fitted.values
   residuals.by.algorithm$lm <- tmp.result$residuals
-  elapsed.time.by.algorithm<- c(elapsed.time.by.algorithm,
+  elapsed.time.by.algorithm <- c(elapsed.time.by.algorithm,
                                 lm = tmp.time.result[[3]])
   
   
@@ -259,10 +313,10 @@ CalculateRH <- function(wdata) {
   D2_Obs_model_data_test <-  D2_Obs_model_data[-train,]
   
    
-  # Models and predictions for T2 and D2
+  # Models and predictions for T2 and D2. Parameter value selects the formula for mymodel
   
-  results.T2 <- ModelsOfAlgorithms(T2_Obs_model_data_train, T2_Obs_model_data_test)
-  results.D2 <- ModelsOfAlgorithms(D2_Obs_model_data_train, D2_Obs_model_data_test)
+  results.T2 <- ModelsOfAlgorithms(T2_Obs_model_data_train, T2_Obs_model_data_test, parameter = 1)
+  results.D2 <- ModelsOfAlgorithms(D2_Obs_model_data_train, D2_Obs_model_data_test, parameter = 2)
   
   
   # T2 and D2 observation and model data  
@@ -273,35 +327,42 @@ CalculateRH <- function(wdata) {
   D2_model_test <- D2_Obs_model_data_test[,4]
   
   
-  # T2 and D2 from predictions using lm, lmstep and glmcv
+  # T2 and D2 from predictions using mymodel, lm, lmstep and glmcv
   
+  
+  T2_pred_mymodel <- results.T2$fitted.values$mymodel
   T2_pred_lm <- results.T2$fitted.values$lm
   T2_pred_lmstep <- results.T2$fitted.values$lmstep
   T2_pred_glmcv<- results.T2$fitted.values$glmcv
 
-  
+  D2_pred_mymodel <- results.D2$fitted.values$mymodel
   D2_pred_lm <- results.D2$fitted.values$lms
   D2_pred_lmstep <- results.D2$fitted.values$lmstep
   D2_pred_glmcv<- results.D2$fitted.values$glmcv
 
-  # rmse for T2 and  D2 obtained using the rawmodel,lm, lmstep and glmcv  models
+  # rmse for T2 and  D2 obtained using the rawmodel, mymodel, lm, lmstep and glmcv  models
+  
   rmse.T2.raw <- sqrt(mean((T2_obs_test - T2_model_test)^2))
+  rmse.T2.mymodel <- sqrt(mean(results.T2$residuals$mymodel^2))
   rmse.T2.lm <- sqrt(mean(results.T2$residuals$lm^2))
   rmse.T2.lm <- sqrt(mean(results.T2$residuals$lm^2))
   rmse.T2.lmstep <- sqrt(mean(results.T2$residuals$lmstep^2))
   rmse.T2.glmcv <- sqrt(mean(results.T2$residuals$glmcv^2))
  
   rmse.D2.raw <- sqrt(mean((D2_obs_test - D2_model_test)^2))
+  rmse.D2.mymodel <- sqrt(mean(results.D2$residuals$mymodel^2))
   rmse.D2.lm <- sqrt(mean(results.D2$residuals$lm^2))
   rmse.D2.lmstep <- sqrt(mean(results.D2$residuals$lmstep^2))
   rmse.D2.glmcv <- sqrt(mean(results.D2$residuals$glmcv^2))
 
    rmse.pred.by.model<- c(rmse.pred.by.model,
                         T2raw = rmse.T2.raw,
+                        T2mymodel = rmse.T2.mymodel,
                         T2lm = rmse.T2.lm,
                         T2lmstep = rmse.T2.lmstep,
                         T2glmcv = rmse.T2.glmcv,
                         D2raw = rmse.D2.raw,
+                        D2mymodel = rmse.D2.mymodel,
                         D2lm = rmse.D2.lm,
                         D2lmstep = rmse.D2.lmstep,
                         D2glmcv = rmse.D2.glmcv
@@ -319,7 +380,11 @@ CalculateRH <- function(wdata) {
   specific_humidity_model <-  6.112*exp((17.62*D2_model_test)/(D2_obs_test + 243.12))
   RH_model <- 100*(specific_humidity_model/saturation_humidity_model)
   
-  # predicted T2, D2 using lm, lmstep and glmcv
+  # predicted T2, D2 using mymodel, lm, lmstep and glmcv
+  
+  saturation_humidity_pred_mymodel <-  6.112*exp((17.62*T2_pred_mymodel)/(T2_pred_mymodel + 243.12))
+  specific_humidity_pred_mymodel <-  6.112*exp((17.62*D2_pred_mymodel)/(D2_pred_mymodel + 243.12))
+  RH_pred_mymodel <- 100*(specific_humidity_pred_mymodel/saturation_humidity_pred_mymodel)
   
   saturation_humidity_pred_lm <-  6.112*exp((17.62*T2_pred_lm)/(T2_pred_lm + 243.12))
   specific_humidity_pred_lm <-  6.112*exp((17.62*D2_pred_lm)/(D2_pred_lm + 243.12))
@@ -337,6 +402,7 @@ CalculateRH <- function(wdata) {
   
   # rmse for RH
   rmse_RH_model <- sqrt(mean((RH_model - RH_obs)^2))
+  rmse_RH_mymodel <- sqrt(mean((RH_pred_mymodel - RH_obs)^2))
   rmse_RH_lm <- sqrt(mean((RH_pred_lm - RH_obs)^2))
   rmse_RH_lmstep <- sqrt(mean((RH_pred_lmstep - RH_obs)^2))
   rmse_RH_glmcv <- sqrt(mean((RH_pred_glmcv - RH_obs)^2))
@@ -344,6 +410,7 @@ CalculateRH <- function(wdata) {
   
   rmse.RH.by.model<- c(rmse.RH.by.model,
                        rawmodelRH = rmse_RH_model,
+                       mymodelRH = rmse_RH_mymodel,
                        lmRH = rmse_RH_lm,
                        lmstepRH = rmse_RH_lmstep,
                        glmcvRH = rmse_RH_glmcv

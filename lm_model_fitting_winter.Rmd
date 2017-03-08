@@ -313,9 +313,9 @@ summary(my.model.D2)
 
 We now see the predicting ability of our model by using it to predict D2 for the test data D2_winter_00_08_test.
 The results show that the root mean square error (rmse) is 1.351. 
-Our linear regression model for T2 is 
+Our linear regression model for D2 is 
 <pre><code>
-T2  =  2.472731 - 0.063511 *  T2 (of the ECMWF model) + 0.564682 * D2 (of the ECMWF model) + 0.364282 * T_950  - 0.148566* T_950_M1 + 0.265225 *D2_M1 - 0.603928* TP +  0.035618 * RH_950 + 0.082966 * V10 - 0.629401* LCC
+D2  =  2.472731 - 0.063511 *  T2 (of the ECMWF model) + 0.564682 * D2 (of the ECMWF model) + 0.364282 * T_950  - 0.148566* T_950_M1 + 0.265225 *D2_M1 - 0.603928* TP +  0.035618 * RH_950 + 0.082966 * V10 - 0.629401* LCC
 </code></pre>
 
 
@@ -700,7 +700,10 @@ In this section, we calculate the RH values using the T2Obs, D2Obs,   T2 and D2 
 We get the following rmse values for the different models
 rmse RH ECMWF model =  4.823471 rmse RM mymodel =  2.000381 rmse RM lm =  2.029639 rmse RH lmstep =  1.980861 rmse RH glmcv =  1.983662.
 
-We can see that the ECMWF model has high rmse in RH value compared to all other models. The model we developed "mymodel" has comparable rmse values for RH than that of lm, lmstep and glmcv models. 
+We can see that the ECMWF model has high rmse in RH value compared to all other models. The model we developed "mymodel" has comparable rmse values for RH than that of lm, lmstep and glmcv models. This experiment shows that the statistical preprocessing improves the forecast as it reduces the rmse compared to the raw model forecast. 
+
+Recall that the rmse for T2 and D2 for the linear regression were around 1.4 in all the models. The rmse for RH is much for than  (even double) that of T2 and D2.
+
   
 ```{r, warning=FALSE, message=F, echo=TRUE} 
   rmse.RH.model <- sqrt(mean((RHmodel - RHObs)^2))
